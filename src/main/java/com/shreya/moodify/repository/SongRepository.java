@@ -1,0 +1,2 @@
+package com.shreya.moodify.repository; import com.shreya.moodify.entity.Song; import org.springframework.data.jpa.repository.*; import org.springframework.data.domain.*; import java.util.*;
+public interface SongRepository extends JpaRepository<Song,Long>{Page<Song> findByTitleContainingIgnoreCaseOrArtistContainingIgnoreCaseOrAlbumContainingIgnoreCaseOrGenreContainingIgnoreCaseOrLanguageContainingIgnoreCase(String t,String a,String al,String g,String l,Pageable p); List<Song> findByLanguageIgnoreCase(String x); List<Song> findByGenreIgnoreCase(String x);}

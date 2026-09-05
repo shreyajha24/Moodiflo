@@ -1,0 +1,101 @@
+package com.shreya.moodify.security;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+@Configuration
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.setStatus(401);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("timestamp", Instant.now().toString());
+            body.put("status", 401);
+            body.put("error", "UNAUTHORIZED");
+            body.put("message", "Full authentication is required to access this resource");
+            body.put("path", request.getRequestURI());
+            objectMapper.writeValue(response.getOutputStream(), body);
+        };
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.setStatus(403);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("timestamp", Instant.now().toString());
+            body.put("status", 403);
+            body.put("error", "FORBIDDEN");
+            body.put("message", accessDeniedException.getMessage() != null ? accessDeniedException.getMessage() : "Access is denied");
+            body.put("path", request.getRequestURI());
+            objectMapper.writeValue(response.getOutputStream(), body);
+        };
+    }
+
+    @Bean
+    public SecurityFilterChain security(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
+        return http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> {})
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint())
+                        .accessDeniedHandler(accessDeniedHandler())
+                )
+                .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/songs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/moods/**").permitAll()
+                        .requestMatchers("/api/search").permitAll()
+                        .requestMatchers("/api/discover/**").permitAll()
+                        .requestMatchers("/api/mood-session").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        // Protected translation endpoint
+                        .requestMatchers(HttpMethod.POST, "/api/songs/*/translate").authenticated()
+                        // Admin endpoints for modification of songs and moods
+                        .requestMatchers(HttpMethod.POST, "/api/songs/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/songs/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/songs/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/moods/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/moods/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/moods/**").hasRole("ADMIN")
+                        // Protected user endpoints
+                        .requestMatchers("/api/users/me/**").authenticated()
+                        .requestMatchers("/api/playlists/**").authenticated()
+                        .requestMatchers("/api/listening-history").authenticated()
+                        .requestMatchers("/api/home").authenticated()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+}
