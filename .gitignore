@@ -31,3 +31,17 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Logs ###
+*.log
+app.log
+app_err.log
+
+### Node / Frontend artifacts (if any) ###
+node_modules/
+package-lock.json
+.npm/
+
+### Environment / Local Secrets ###
+.env
+.env.local
