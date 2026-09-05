@@ -23,9 +23,14 @@ public class GlobalExceptionHandler {
         return body(400, "VALIDATION_ERROR", msg, r);
     }
 
-    @ExceptionHandler(ApiExceptions.NotFound.class)
-    public ResponseEntity<Map<String, Object>> notFound(RuntimeException e, WebRequest r) {
+    @ExceptionHandler({ApiExceptions.NotFound.class, org.springframework.web.servlet.resource.NoResourceFoundException.class})
+    public ResponseEntity<Map<String, Object>> notFound(Exception e, WebRequest r) {
         return body(404, "NOT_FOUND", e.getMessage(), r);
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Map<String, Object>> methodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException e, WebRequest r) {
+        return body(405, "METHOD_NOT_ALLOWED", e.getMessage(), r);
     }
 
     @ExceptionHandler({ApiExceptions.BadRequest.class, IllegalArgumentException.class})

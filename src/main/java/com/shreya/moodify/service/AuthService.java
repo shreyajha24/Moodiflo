@@ -4,6 +4,7 @@ import com.shreya.moodify.entity.User;
 import com.shreya.moodify.exception.ApiExceptions.BadRequest;
 import com.shreya.moodify.repository.UserRepository;
 import com.shreya.moodify.security.JwtService;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,9 +38,9 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest r) {
         User u = users.findByEmailIgnoreCase(r.email().trim())
-                .orElseThrow(() -> new BadRequest("Invalid credentials"));
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
         if (!encoder.matches(r.password(), u.getPassword())) {
-            throw new BadRequest("Invalid credentials");
+            throw new BadCredentialsException("Invalid credentials");
         }
         return new AuthResponse(jwt.create(u.getEmail()), view(u));
     }

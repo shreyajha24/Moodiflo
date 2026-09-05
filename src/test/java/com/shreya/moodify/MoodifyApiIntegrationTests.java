@@ -90,7 +90,7 @@ class MoodifyApiIntegrationTests {
         // 5. Login with invalid password
         LoginRequest badLogin = new LoginRequest(testEmail, "WrongPassword!");
         ResponseEntity<Map> badLoginRes = restTemplate.postForEntity(baseUrl + "/api/auth/login", badLogin, Map.class);
-        assertThat(badLoginRes.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(badLoginRes.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test

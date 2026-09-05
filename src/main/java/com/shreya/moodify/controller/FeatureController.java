@@ -27,6 +27,11 @@ public class FeatureController {
         service.record(a.getName(), r);
     }
 
+    @GetMapping("/listening-history")
+    public List<SongView> listeningHistory(Authentication a) {
+        return service.recent(a.getName());
+    }
+
     @GetMapping("/songs/{songId}/lyrics")
     public List<String> lyrics(@PathVariable Long songId) {
         return service.rawLyrics(songId);
