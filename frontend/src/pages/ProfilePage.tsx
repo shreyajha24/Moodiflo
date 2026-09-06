@@ -1,12 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Globe, Heart, ListMusic, History, LogOut, ArrowRight } from 'lucide-react';
+import { User, Mail, Globe, Heart, ListMusic, History, LogOut, ArrowRight, Music2, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { EmptyState } from '../components/common/EmptyState';
+import { spotifyService } from '../services/spotifyService';
+import type { SpotifyStatusView } from '../types';
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+  const [spotify, setSpotify] = useState<SpotifyStatusView | null>(null);
+  const [spotifyLoading, setSpotifyLoading] = useState(false);
+  const [spotifyMessage, setSpotifyMessage] = useState<string | null>(null);
+
+  const loadSpotifyStatus = async () => {
+    try {
+      setSpotify(await spotifyService.getStatus());
+    } catch {
+      setSpotifyMessage('Unable to check Spotify connection.');
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) void loadSpotifyStatus();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search).get('spotify');
+    if (query === 'connected') setSpotifyMessage('Spotify connected successfully.');
+    if (query === 'error') setSpotifyMessage('Spotify connection was not completed.');
+  }, []);
 
   if (!isAuthenticated || !user) {
     return (
@@ -23,6 +46,30 @@ export const ProfilePage: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const connectSpotify = async () => {
+    setSpotifyLoading(true);
+    setSpotifyMessage(null);
+    try {
+      window.location.assign(await spotifyService.getAuthorizationUrl());
+    } catch {
+      setSpotifyMessage('Spotify is not configured on this server.');
+      setSpotifyLoading(false);
+    }
+  };
+
+  const disconnectSpotify = async () => {
+    setSpotifyLoading(true);
+    try {
+      await spotifyService.disconnect();
+      setSpotify({ connected: false, configured: spotify?.configured ?? true });
+      setSpotifyMessage('Spotify disconnected.');
+    } catch {
+      setSpotifyMessage('Unable to disconnect Spotify.');
+    } finally {
+      setSpotifyLoading(false);
+    }
   };
 
   return (
@@ -44,6 +91,7 @@ export const ProfilePage: React.FC = () => {
               <div className="w-full h-full bg-[#12141c] rounded-full flex items-center justify-center text-3xl font-extrabold text-white">
                 {user.name.charAt(0).toUpperCase()}
               </div>
+
             )}
           </div>
 
@@ -74,6 +122,33 @@ export const ProfilePage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <section className="glass-panel p-6 rounded-3xl space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-400">
+            <Music2 className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <h2 className="font-bold text-white">Spotify playback</h2>
+            <p className="text-xs text-slate-400">
+              {spotify?.connected ? `Connected${spotify.displayName ? ` as ${spotify.displayName}` : ''}` : 'Connect Spotify to listen to real tracks.'}
+            </p>
+          </div>
+          {spotify?.connected ? (
+            <button onClick={() => void disconnectSpotify()} disabled={spotifyLoading} className="px-4 py-2 rounded-full text-xs font-bold text-slate-300 bg-white/5 hover:bg-white/10 cursor-pointer">
+              {spotifyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
+            </button>
+          ) : (
+            <button onClick={() => void connectSpotify()} disabled={spotifyLoading || spotify?.configured === false} className="px-4 py-2 rounded-full text-xs font-bold text-slate-950 bg-green-400 hover:bg-green-300 disabled:opacity-50 cursor-pointer">
+              {spotifyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Connect Spotify'}
+            </button>
+          )}
+        </div>
+        {spotify?.product && spotify.product !== 'premium' && (
+          <p className="text-xs text-amber-300">Spotify Premium is required for in-browser playback.</p>
+        )}
+        {spotifyMessage && <p className="text-xs text-slate-300">{spotifyMessage}</p>}
+      </section>
 
       {/* Quick Navigation Cards */}
       <div>

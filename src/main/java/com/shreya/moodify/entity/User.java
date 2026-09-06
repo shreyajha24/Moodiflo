@@ -15,4 +15,12 @@ public class User {
     @Enumerated(EnumType.STRING) @Column(nullable=false) private Role role=Role.USER;
     private Instant createdAt=Instant.now(); private Instant updatedAt=Instant.now();
     public enum Role { USER, ADMIN }
+
+    // Spotify OAuth fields (nullable — only set when user connects Spotify)
+    @Column(length=512) private String spotifyAccessToken;
+    @Column(length=512) private String spotifyRefreshToken;
+    private Instant spotifyTokenExpiresAt;
+    private String spotifyUserId;
+    private String spotifyDisplayName;
+    private String spotifyProduct; // "premium", "free", etc.
 }

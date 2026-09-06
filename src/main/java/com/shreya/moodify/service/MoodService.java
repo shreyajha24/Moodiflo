@@ -17,11 +17,14 @@ public class MoodService {
     private final MoodRepository moods;
     private final SongMoodRepository links;
     private final RecommendationService recommendationService;
+    private final SpotifyService spotifyService;
 
-    public MoodService(MoodRepository m, SongMoodRepository l, RecommendationService recService) {
+    public MoodService(MoodRepository m, SongMoodRepository l, RecommendationService recService,
+                       SpotifyService spotifyService) {
         this.moods = m;
         this.links = l;
         this.recommendationService = recService;
+        this.spotifyService = spotifyService;
     }
 
     @Transactional(readOnly = true)
@@ -43,7 +46,16 @@ public class MoodService {
 
     @Transactional(readOnly = true)
     public List<SongView> recommendations(String name) {
-        return recommendationService.recommendForMood(name, null, null, 20);
+        return recommendations(name, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SongView> recommendations(String name, String userEmail) {
+        get(name);
+        List<SongView> spotifyTracks = spotifyService.searchByMood(name, userEmail);
+        return spotifyTracks.isEmpty()
+                ? recommendationService.recommendForMood(name, null, null, 20)
+                : spotifyTracks;
     }
 
     @Transactional(readOnly = true)

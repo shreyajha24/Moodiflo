@@ -35,6 +35,8 @@ export interface SongView {
   genre?: string | null;
   releaseDate?: string | null;
   description?: string | null;
+  spotifyUri?: string | null;
+  spotifyTrackId?: string | null;
 }
 
 export interface MoodView {
@@ -127,4 +129,11 @@ export interface ApiError {
   error: string;
   message: string;
   path: string;
+}
+
+export interface SpotifyStatusView {
+  connected: boolean;
+  configured: boolean;
+  displayName?: string | null;
+  product?: string | null;
 }

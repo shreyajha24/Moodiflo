@@ -47,7 +47,9 @@ public class SongService {
                 s.getLanguage(),
                 s.getGenre(),
                 s.getReleaseDate(),
-                s.getDescription()
+                s.getDescription(),
+                null, // spotifyUri — not applicable for DB songs
+                null  // spotifyTrackId — not applicable for DB songs
         );
     }
 

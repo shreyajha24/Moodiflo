@@ -30,6 +30,7 @@ export const SongCard: React.FC<SongCardProps> = ({
   const [favLoading, setFavLoading] = useState(false);
 
   const isThisSongPlaying = currentSong?.id === song.id && isPlaying;
+  const isSpotifyTrack = Boolean(song.spotifyTrackId || song.spotifyUri);
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -137,7 +138,7 @@ export const SongCard: React.FC<SongCardProps> = ({
       <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/5 text-xs text-slate-500">
         <span>{formatDuration(song.duration)}</span>
         <div className="flex items-center gap-1.5">
-          {onAddToPlaylist && (
+          {onAddToPlaylist && !isSpotifyTrack && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -150,18 +151,20 @@ export const SongCard: React.FC<SongCardProps> = ({
             </button>
           )}
 
-          <button
-            onClick={handleFavoriteClick}
-            disabled={favLoading}
-            className={`p-1.5 rounded-lg transition-colors ${
-              favorite
-                ? 'text-rose-500 hover:text-rose-400'
-                : 'text-slate-400 hover:text-rose-400 hover:bg-white/5'
-            }`}
-            title={favorite ? 'Remove Favorite' : 'Add to Favorites'}
-          >
-            <Heart className={`w-4 h-4 ${favorite ? 'fill-current' : ''}`} />
-          </button>
+          {!isSpotifyTrack && (
+            <button
+              onClick={handleFavoriteClick}
+              disabled={favLoading}
+              className={`p-1.5 rounded-lg transition-colors ${
+                favorite
+                  ? 'text-rose-500 hover:text-rose-400'
+                  : 'text-slate-400 hover:text-rose-400 hover:bg-white/5'
+              }`}
+              title={favorite ? 'Remove Favorite' : 'Add to Favorites'}
+            >
+              <Heart className={`w-4 h-4 ${favorite ? 'fill-current' : ''}`} />
+            </button>
+          )}
         </div>
       </div>
     </div>

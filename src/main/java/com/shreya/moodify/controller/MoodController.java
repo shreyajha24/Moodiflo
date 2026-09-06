@@ -5,6 +5,7 @@ import com.shreya.moodify.service.MoodService;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.Map;
@@ -25,8 +26,9 @@ public class MoodController {
     }
 
     @GetMapping("/moods/{name}/recommendations")
-    public Map<String, Object> recommendations(@PathVariable String name) {
-        return Map.of("mood", name.toUpperCase(), "songs", service.recommendations(name));
+    public Map<String, Object> recommendations(@PathVariable String name, Authentication authentication) {
+        String email = authentication == null ? null : authentication.getName();
+        return Map.of("mood", name.toUpperCase(), "songs", service.recommendations(name, email));
     }
 
 

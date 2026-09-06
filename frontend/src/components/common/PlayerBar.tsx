@@ -21,6 +21,7 @@ export const PlayerBar: React.FC = () => {
     toggleMute,
     toggleLyrics,
     isLyricsOpen,
+    spotifyError,
   } = usePlayer();
 
   if (!currentSong) return null;
@@ -41,6 +42,11 @@ export const PlayerBar: React.FC = () => {
           boxShadow: `0 20px 40px -15px ${currentTheme.primaryColor}25, 0 0 1px 1px rgba(255,255,255,0.08)`,
         }}
       >
+        {spotifyError && (
+          <div className="mb-2 rounded-xl bg-rose-500/10 border border-rose-500/20 px-3 py-2 text-[11px] text-rose-200">
+            {spotifyError}
+          </div>
+        )}
         {/* Contextual Mood Vibe Bar */}
         <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-white/[0.06] text-[11px]">
           <div className="flex items-center gap-2">

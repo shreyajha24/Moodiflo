@@ -98,6 +98,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/songs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/moods/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/spotify/callback").permitAll()
                         .requestMatchers("/api/search").permitAll()
                         .requestMatchers("/api/discover/**").permitAll()
                         .requestMatchers("/api/mood-session").permitAll()

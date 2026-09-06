@@ -6,7 +6,7 @@ public final class ApiDtos { private ApiDtos(){}
  public record LoginRequest(@Email @NotBlank String email,@NotBlank String password){}
  public record AuthResponse(String token,UserView user){}
  public record SongRequest(@NotBlank String title,@NotBlank String artist,String album,@Positive Integer duration,String audioUrl,String coverImageUrl,String language,String genre,LocalDate releaseDate,String description,@DecimalMin("0") @DecimalMax("1") Double popularity){}
- public record SongView(Long id,String title,String artist,String album,Integer duration,String audioUrl,String coverImageUrl,String language,String genre,LocalDate releaseDate,String description){}
+ public record SongView(Long id,String title,String artist,String album,Integer duration,String audioUrl,String coverImageUrl,String language,String genre,LocalDate releaseDate,String description,String spotifyUri,String spotifyTrackId){}
  public record MoodView(Long id,String name,String description,String emoji,Double intensity,List<String> recommendedGenres){}
  public record MoodRequest(@NotBlank @Size(max=40) String name,String description,String emoji,@DecimalMin("0") @DecimalMax("1") Double intensity,String recommendedGenres){}
  public record MoodSessionRequest(@NotBlank String mood,@DecimalMin("0") @DecimalMax("1") Double intensity,String language){}
@@ -20,4 +20,8 @@ public final class ApiDtos { private ApiDtos(){}
  public record DiscoveryResponse(String greeting,String suggestedMood,List<MoodView> moodCards,List<SongView> continueListening,List<SongView> becauseYouListened,List<SongView> recentlyPlayed,List<SongView> recommendedForYou,List<SongView> trending){}
  public record QueryRequest(@NotBlank String query){}
  public record QueryResponse(String interpretedMood,double confidence,List<SongView> songs){}
+ // Spotify-specific DTOs
+ public record SpotifyStatusView(boolean connected,boolean configured,String displayName,String product){}
+ public record SpotifyAuthUrlView(String authUrl){}
+ public record SpotifyTokenView(String accessToken){}
 }

@@ -27,6 +27,7 @@ export const SoundPathRow: React.FC<SoundPathRowProps> = ({
   const [isFavorite, setIsFavorite] = useState(false);
 
   const isThisSongPlaying = currentSong?.id === song.id && isPlaying;
+  const isSpotifyTrack = Boolean(song.spotifyTrackId || song.spotifyUri);
 
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -126,17 +127,19 @@ export const SoundPathRow: React.FC<SoundPathRowProps> = ({
           {formatDuration(song.duration)}
         </span>
 
-        <button
-          onClick={handleFavorite}
-          className={`p-1.5 rounded-full transition-colors cursor-pointer ${
-            isFavorite ? 'text-rose-400' : 'text-slate-500 hover:text-white'
-          }`}
-          title="Favorite"
-        >
-          <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'fill-current' : ''}`} />
-        </button>
+        {!isSpotifyTrack && (
+          <button
+            onClick={handleFavorite}
+            className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+              isFavorite ? 'text-rose-400' : 'text-slate-500 hover:text-white'
+            }`}
+            title="Favorite"
+          >
+            <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'fill-current' : ''}`} />
+          </button>
+        )}
 
-        {onAddToPlaylist && (
+        {onAddToPlaylist && !isSpotifyTrack && (
           <button
             onClick={(e) => {
               e.stopPropagation();

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import type { SongView } from '../types';
 import { historyService } from '../services/historyService';
 import { useAuth } from './AuthContext';
+import { spotifyService } from '../services/spotifyService';
 
 interface PlayerContextType {
   currentSong: SongView | null;
@@ -28,6 +29,8 @@ interface PlayerContextType {
   openLyrics: () => void;
   closeLyrics: () => void;
   toggleLyrics: () => void;
+  spotifyConnected: boolean;
+  spotifyError: string | null;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -44,11 +47,119 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState<boolean>(false);
   const [activeMood, setActiveMood] = useState<string | null>(null);
+  const [spotifyConnected, setSpotifyConnected] = useState(false);
+  const [spotifyError, setSpotifyError] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const simulatedTimerRef = useRef<number | null>(null);
   const isSimulatedRef = useRef<boolean>(false);
   const historyRecordedRef = useRef<boolean>(false);
+  const spotifyPlayerRef = useRef<SpotifyPlayer | null>(null);
+  const spotifyDeviceIdRef = useRef<string | null>(null);
+  const spotifyTokenRef = useRef<string | null>(null);
+  const spotifyInitRef = useRef<Promise<SpotifyPlayer> | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setSpotifyConnected(false);
+      spotifyPlayerRef.current?.disconnect();
+      spotifyPlayerRef.current = null;
+      spotifyInitRef.current = null;
+      spotifyTokenRef.current = null;
+      return;
+    }
+    spotifyService.getStatus().then((status) => setSpotifyConnected(status.connected)).catch(() => setSpotifyConnected(false));
+  }, [isAuthenticated]);
+
+  const ensureSpotifyPlayer = useCallback(async (): Promise<SpotifyPlayer> => {
+    if (spotifyPlayerRef.current) return spotifyPlayerRef.current;
+    if (spotifyInitRef.current) return spotifyInitRef.current;
+
+    spotifyInitRef.current = (async () => {
+      const token = await spotifyService.getAccessToken();
+      spotifyTokenRef.current = token;
+      if (!window.Spotify) {
+        await new Promise<void>((resolve, reject) => {
+          const previous = window.onSpotifyWebPlaybackSDKReady;
+          window.onSpotifyWebPlaybackSDKReady = () => {
+            previous?.();
+            resolve();
+          };
+          const script = document.createElement('script');
+          script.src = 'https://sdk.scdn.co/spotify-player.js';
+          script.async = true;
+          script.onerror = () => reject(new Error('Unable to load Spotify playback.'));
+          document.body.appendChild(script);
+        });
+      }
+      if (!window.Spotify) throw new Error('Spotify playback is unavailable.');
+
+      const player = new window.Spotify.Player({
+        name: 'Moodiflo Web Player',
+        volume: isMuted ? 0 : volume,
+        getOAuthToken: (callback) => {
+          spotifyService.getAccessToken().then((nextToken) => {
+            spotifyTokenRef.current = nextToken;
+            callback(nextToken);
+          }).catch(() => callback(spotifyTokenRef.current || ''));
+        },
+      });
+      player.addListener('ready', ({ device_id }: { device_id: string }) => {
+        spotifyDeviceIdRef.current = device_id;
+      });
+      player.addListener('not_ready', () => {
+        spotifyDeviceIdRef.current = null;
+      });
+      player.addListener('initialization_error', ({ message }: { message: string }) => setSpotifyError(message));
+      player.addListener('authentication_error', () => setSpotifyError('Spotify connection expired. Please reconnect Spotify.'));
+      player.addListener('account_error', () => setSpotifyError('Spotify Premium is required for in-browser playback.'));
+      player.addListener('playback_error', ({ message }: { message: string }) => setSpotifyError(message));
+      player.addListener('player_state_changed', (state: SpotifyTrackState | null) => {
+        if (!state) return;
+        setCurrentTime(state.position / 1000);
+        setDuration(state.duration / 1000);
+        setIsPlaying(!state.paused);
+      });
+      const connected = await player.connect();
+      if (!connected) throw new Error('Spotify player could not connect.');
+      for (let attempt = 0; attempt < 50 && !spotifyDeviceIdRef.current; attempt += 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 100));
+      }
+      if (!spotifyDeviceIdRef.current) throw new Error('Spotify playback device did not become ready.');
+      spotifyPlayerRef.current = player;
+      setSpotifyError(null);
+      return player;
+    })();
+
+    try {
+      return await spotifyInitRef.current;
+    } catch (error) {
+      spotifyInitRef.current = null;
+      throw error;
+    }
+  }, [isMuted, volume]);
+
+  const playSpotifyTrack = useCallback(async (song: SongView) => {
+    try {
+      const player = await ensureSpotifyPlayer();
+      await player.activateElement();
+      const token = spotifyTokenRef.current || await spotifyService.getAccessToken();
+      spotifyTokenRef.current = token;
+      const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(spotifyDeviceIdRef.current || '')}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uris: [song.spotifyUri || `spotify:track:${song.spotifyTrackId}`] }),
+      });
+      if (!response.ok) {
+        if (response.status === 403) throw new Error('Spotify Premium is required for in-browser playback.');
+        throw new Error('Spotify could not start playback.');
+      }
+      setIsPlaying(true);
+    } catch (error) {
+      setIsPlaying(false);
+      setSpotifyError(error instanceof Error ? error.message : 'Unable to start Spotify playback.');
+    }
+  }, [ensureSpotifyPlayer]);
 
   // Initialize audio element
   useEffect(() => {
@@ -119,6 +230,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (
       isAuthenticated &&
       currentSong &&
+      currentSong.id > 0 &&
       !historyRecordedRef.current &&
       duration > 0 &&
       (currentTime / duration) >= 0.75
@@ -135,7 +247,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [currentTime, duration, currentSong, isAuthenticated, activeMood]);
 
   const handleSongCompleted = useCallback(() => {
-    if (isAuthenticated && currentSong) {
+    if (isAuthenticated && currentSong && currentSong.id > 0) {
       historyService.recordHistory({
         songId: currentSong.id,
         completionPercentage: 100,
@@ -183,7 +295,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setCurrentIndex(0);
     }
 
-    if (audioRef.current && song.audioUrl) {
+    if (song.spotifyTrackId || song.spotifyUri) {
+      void playSpotifyTrack(song);
+    } else if (audioRef.current && song.audioUrl) {
       audioRef.current.src = song.audioUrl;
       audioRef.current.volume = isMuted ? 0 : volume;
       audioRef.current.play().catch(() => {
@@ -194,16 +308,22 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     setIsPlaying(true);
-  }, [isMuted, queue.length, volume]);
+  }, [isMuted, playSpotifyTrack, queue.length, volume]);
 
   const togglePlay = useCallback(() => {
     if (!currentSong) return;
 
     if (isPlaying) {
-      audioRef.current?.pause();
-      setIsPlaying(false);
+      if (currentSong.spotifyTrackId || currentSong.spotifyUri) {
+        void spotifyPlayerRef.current?.pause();
+      } else {
+        audioRef.current?.pause();
+        setIsPlaying(false);
+      }
     } else {
-      if (!isSimulatedRef.current && audioRef.current && currentSong.audioUrl) {
+      if (currentSong.spotifyTrackId || currentSong.spotifyUri) {
+        void spotifyPlayerRef.current?.resume();
+      } else if (!isSimulatedRef.current && audioRef.current && currentSong.audioUrl) {
         audioRef.current.play().catch(() => {
           isSimulatedRef.current = true;
         });
@@ -213,13 +333,16 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [currentSong, isPlaying]);
 
   const pause = useCallback(() => {
-    audioRef.current?.pause();
+    if (currentSong?.spotifyTrackId || currentSong?.spotifyUri) void spotifyPlayerRef.current?.pause();
+    else audioRef.current?.pause();
     setIsPlaying(false);
-  }, []);
+  }, [currentSong]);
 
   const resume = useCallback(() => {
     if (!currentSong) return;
-    if (!isSimulatedRef.current && audioRef.current && currentSong.audioUrl) {
+    if (currentSong.spotifyTrackId || currentSong.spotifyUri) {
+      void spotifyPlayerRef.current?.resume();
+    } else if (!isSimulatedRef.current && audioRef.current && currentSong.audioUrl) {
       audioRef.current.play().catch(() => {
         isSimulatedRef.current = true;
       });
@@ -246,10 +369,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const seek = useCallback((percentage: number) => {
     const targetTime = (percentage / 100) * duration;
     setCurrentTime(targetTime);
-    if (audioRef.current && !isSimulatedRef.current) {
+    if (currentSong?.spotifyTrackId || currentSong?.spotifyUri) {
+      void spotifyPlayerRef.current?.seek(targetTime * 1000);
+    } else if (audioRef.current && !isSimulatedRef.current) {
       audioRef.current.currentTime = targetTime;
     }
-  }, [duration]);
+  }, [currentSong, duration]);
 
   const setVolume = useCallback((vol: number) => {
     const clamped = Math.max(0, Math.min(1, vol));
@@ -258,6 +383,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (audioRef.current) {
       audioRef.current.volume = clamped;
     }
+    void spotifyPlayerRef.current?.setVolume(clamped);
   }, []);
 
   const toggleMute = useCallback(() => {
@@ -303,6 +429,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         openLyrics,
         closeLyrics,
         toggleLyrics,
+        spotifyConnected,
+        spotifyError,
       }}
     >
       {children}
