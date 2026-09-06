@@ -80,8 +80,21 @@ public class SeedDataConfig {
                 }
             }
 
-            // Remove legacy admin user if present to eliminate backdoor credentials
-            ur.findByEmailIgnoreCase("admin@moodify.local").ifPresent(ur::delete);
+            // Demote and disable any legacy admin account to eliminate backdoor credentials
+            ur.findByEmailIgnoreCase("admin@moodify.local").ifPresent(u -> {
+                u.setEmail("disabled_admin_" + u.getId() + "@moodify.invalid");
+                u.setPassword("DISABLED_" + java.util.UUID.randomUUID());
+                u.setRole(User.Role.USER);
+                ur.save(u);
+            });
+
+            // Also reset any lingering ADMIN roles to USER in the database
+            ur.findAll().forEach(u -> {
+                if (u.getRole() == User.Role.ADMIN) {
+                    u.setRole(User.Role.USER);
+                    ur.save(u);
+                }
+            });
 
             // Seed a standard non-privileged demo user for evaluation
             if (ur.findByEmailIgnoreCase("demo@moodify.local").isEmpty()) {
