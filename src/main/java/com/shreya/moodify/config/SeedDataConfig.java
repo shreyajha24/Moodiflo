@@ -80,12 +80,16 @@ public class SeedDataConfig {
                 }
             }
 
-            if (ur.findByEmailIgnoreCase("admin@moodify.local").isEmpty()) {
+            // Remove legacy admin user if present to eliminate backdoor credentials
+            ur.findByEmailIgnoreCase("admin@moodify.local").ifPresent(ur::delete);
+
+            // Seed a standard non-privileged demo user for evaluation
+            if (ur.findByEmailIgnoreCase("demo@moodify.local").isEmpty()) {
                 User u = new User();
-                u.setName("Moodify Admin");
-                u.setEmail("admin@moodify.local");
-                u.setPassword(pe.encode("MoodifyAdmin123!"));
-                u.setRole(User.Role.ADMIN);
+                u.setName("Demo User");
+                u.setEmail("demo@moodify.local");
+                u.setPassword(pe.encode("DemoUser123!"));
+                u.setRole(User.Role.USER);
                 u.setPreferredLanguage("English");
                 ur.save(u);
             }

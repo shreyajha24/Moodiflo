@@ -23,7 +23,7 @@ export const LoginPage: React.FC = () => {
 
     try {
       await login({ email: email.trim(), password });
-      success('Welcome back to Moodify!');
+      success('Welcome back to Moodiflo!');
       navigate('/home');
     } catch (err) {
       setErrorMessage(getErrorMessage(err));
@@ -32,35 +32,30 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleFillDemo = (role: 'user' | 'admin') => {
-    if (role === 'admin') {
-      setEmail('admin@moodify.local');
-      setPassword('MoodifyAdmin123!');
-    } else {
-      setEmail('user_demo@moodify.local');
-      setPassword('UserPass123!');
-    }
+  const handleFillDemo = () => {
+    setEmail('demo@moodify.local');
+    setPassword('DemoUser123!');
   };
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center py-10 px-4">
       <div className="relative w-full max-w-md">
         {/* Glow backdrop */}
-        <div className="absolute -top-10 -left-10 w-72 h-72 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-72 h-72 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-rose-500/15 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 glass-panel rounded-3xl p-8 border border-white/10 shadow-2xl">
+        <div className="relative z-10 rounded-3xl p-8 bg-[#131522] border border-white/10 shadow-2xl">
           {/* Brand & Heading */}
           <div className="text-center mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 mb-3 group">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-violet-600/30">
-                <Disc3 className="w-6 h-6" />
+            <Link to="/" className="inline-flex items-center gap-2.5 mb-3 group">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-amber-400/20">
+                <Disc3 className="w-5 h-5 text-amber-300" />
               </div>
-              <span className="text-2xl font-black text-white">Moodify</span>
+              <span className="text-2xl font-black text-white">Mood<span className="mood-wave">iflo</span></span>
             </Link>
-            <h2 className="text-xl font-bold text-white">Welcome Back</h2>
+            <h2 className="text-xl font-bold text-white font-display">Welcome Back</h2>
             <p className="text-xs text-slate-400 mt-1">
-              Sign in to access your mood sessions and saved music
+              Sign in to access your mood flows and saved soundscapes
             </p>
           </div>
 
@@ -139,17 +134,10 @@ export const LoginPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => handleFillDemo('user')}
-                className="flex-1 py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-medium transition-colors text-center"
+                onClick={handleFillDemo}
+                className="w-full py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-medium transition-colors text-center"
               >
                 Demo User
-              </button>
-              <button
-                type="button"
-                onClick={() => handleFillDemo('admin')}
-                className="flex-1 py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-medium transition-colors text-center"
-              >
-                Admin Account
               </button>
             </div>
           </div>

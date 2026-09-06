@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Play,
+  Pause,
   Trash2,
   Music,
   Loader2,
   Plus,
+  Waves,
 } from 'lucide-react';
 import { playlistService } from '../services/playlistService';
 import type { PlaylistView } from '../types';
@@ -59,38 +61,49 @@ export const PlaylistDetailPage: React.FC = () => {
             }
           : null
       );
-      success('Removed track from playlist');
-    } catch {
-      error('Failed to remove track');
+      success('Track removed from playlist');
+    } catch (err) {
+      error(getErrorMessage(err));
     }
   };
 
   const handleDeletePlaylist = async () => {
     if (!playlist) return;
-    if (!window.confirm(`Are you sure you want to delete "${playlist.name}"?`)) return;
+    if (!window.confirm(`Delete playlist "${playlist.name}"?`)) return;
 
     setIsDeleting(true);
     try {
       await playlistService.deletePlaylist(playlist.id);
-      success('Playlist deleted');
+      success(`Playlist deleted`);
       navigate('/playlists');
-    } catch {
-      error('Failed to delete playlist');
-    } finally {
+    } catch (err) {
+      error(getErrorMessage(err));
       setIsDeleting(false);
     }
   };
 
+  if (errorMessage) {
+    return <ErrorState message={errorMessage} onRetry={loadPlaylist} />;
+  }
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-400">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      <div className="flex items-center justify-center py-24 text-slate-400">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
       </div>
     );
   }
 
-  if (errorMessage || !playlist) {
-    return <ErrorState message={errorMessage || 'Playlist not found'} onRetry={loadPlaylist} />;
+  if (!playlist) {
+    return (
+      <EmptyState
+        icon={Music}
+        title="Playlist Not Found"
+        description="The sound collection you are searching for does not exist."
+        actionText="Back to Playlists"
+        onAction={() => navigate('/playlists')}
+      />
+    );
   }
 
   const songs = playlist.songs || [];
@@ -100,55 +113,55 @@ export const PlaylistDetailPage: React.FC = () => {
       {/* Back Button */}
       <button
         onClick={() => navigate('/playlists')}
-        className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+        className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Playlists
       </button>
 
       {/* Playlist Hero */}
-      <section className="glass-panel rounded-3xl p-6 md:p-10 border border-white/10 flex flex-col md:flex-row items-center md:items-start gap-6 bg-gradient-to-br from-emerald-950/30 via-slate-900/60 to-slate-950">
-        <div className="w-48 h-48 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-2xl shrink-0">
-          <Music className="w-16 h-16" />
+      <section className="rounded-3xl p-6 md:p-10 border border-white/10 flex flex-col md:flex-row items-center md:items-start gap-6 bg-gradient-to-br from-amber-500/15 via-white/[0.02] to-rose-500/10 shadow-2xl">
+        <div className="w-44 h-44 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 shadow-2xl shrink-0">
+          <Waves className="w-16 h-16" />
         </div>
 
         <div className="flex-1 text-center md:text-left space-y-3">
-          <span className="inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
-            Playlist
+          <span className="inline-block px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-300 text-xs font-bold uppercase tracking-wider">
+            Curated Flow
           </span>
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight font-display">
             {playlist.name}
           </h1>
           <p className="text-sm text-slate-300 max-w-xl">
-            {playlist.description || 'Curated personal playlist.'}
+            {playlist.description || 'Personal soundscape.'}
           </p>
           <p className="text-xs text-slate-500">
-            {songs.length} {songs.length === 1 ? 'song' : 'songs'}
+            {songs.length} {songs.length === 1 ? 'track' : 'tracks'}
           </p>
 
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-2">
             {songs.length > 0 && (
               <button
                 onClick={() => playSong(songs[0], songs, playlist.name)}
-                className="px-6 py-3 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                className="px-6 py-3 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
               >
                 <Play className="w-4 h-4 fill-current" />
-                Play All
+                Flow All
               </button>
             )}
 
             <button
               onClick={() => navigate('/songs')}
-              className="px-5 py-3 rounded-full bg-white/5 hover:bg-white/10 text-white font-semibold text-xs border border-white/10 flex items-center gap-1.5 transition-colors"
+              className="px-5 py-3 rounded-full bg-white/5 hover:bg-white/10 text-white font-semibold text-xs border border-white/10 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              Add More Songs
+              Add More Tracks
             </button>
 
             <button
               onClick={handleDeletePlaylist}
               disabled={isDeleting}
-              className="p-3 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors"
+              className="p-3 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors cursor-pointer"
               title="Delete Playlist"
             >
               <Trash2 className="w-4 h-4" />
@@ -159,14 +172,14 @@ export const PlaylistDetailPage: React.FC = () => {
 
       {/* Songs List */}
       <section className="space-y-3">
-        <h3 className="text-lg font-bold text-white px-2">Tracks</h3>
+        <h3 className="text-lg font-bold text-white px-2 font-display">Tracks in this Stream</h3>
 
         {songs.length === 0 ? (
           <EmptyState
             icon={Music}
-            title="Playlist is empty"
-            description="Browse all songs and click '+ Add to Playlist' to start building this collection."
-            actionText="Browse Songs"
+            title="This flow has no tracks yet"
+            description="Explore the sound vault and click '+' on any track to start building this collection."
+            actionText="Browse Tracks"
             onAction={() => navigate('/songs')}
           />
         ) : (
@@ -176,51 +189,48 @@ export const PlaylistDetailPage: React.FC = () => {
               return (
                 <div
                   key={s.id}
-                  className="group flex items-center justify-between p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-colors cursor-pointer"
+                  className="group flex items-center justify-between p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all cursor-pointer"
                   onClick={() => {
-                    if (currentSong?.id === s.id) {
+                    if (isThisPlaying) {
                       togglePlay();
                     } else {
                       playSong(s, songs, playlist.name);
                     }
                   }}
                 >
-                  <div className="flex items-center gap-4 min-w-0 pr-4">
-                    <span className="w-6 text-center text-xs font-mono text-slate-500">
-                      {isThisPlaying ? (
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block animate-ping" />
-                      ) : (
-                        index + 1
-                      )}
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="w-5 text-center font-mono text-xs text-slate-500">
+                      {(index + 1).toString().padStart(2, '0')}
                     </span>
 
-                    <div className="w-10 h-10 rounded-xl bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-slate-800 overflow-hidden shrink-0 border border-white/10 relative">
                       {s.coverImageUrl ? (
                         <img src={s.coverImageUrl} alt={s.title} className="w-full h-full object-cover" />
                       ) : (
-                        <Music className="w-5 h-5 text-slate-500" />
+                        <div className="w-full h-full flex items-center justify-center text-slate-500">
+                          <Music className="w-4 h-4" />
+                        </div>
                       )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        {isThisPlaying ? <Pause className="w-4 h-4 fill-white" /> : <Play className="w-4 h-4 fill-white ml-0.5" />}
+                      </div>
                     </div>
 
-                    <div className="truncate">
-                      <p className="text-sm font-semibold text-white group-hover:text-emerald-300 transition-colors truncate">
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-xs sm:text-sm font-bold truncate ${isThisPlaying ? 'text-amber-300' : 'text-white'}`}>
                         {s.title}
                       </p>
-                      <p className="text-xs text-slate-400 truncate">{s.artist}</p>
+                      <p className="text-[11px] text-slate-400 truncate">{s.artist}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 shrink-0">
-                    <span className="text-xs text-slate-500 font-mono hidden sm:inline">
-                      {s.duration ? `${Math.floor(s.duration / 60)}:${(s.duration % 60).toString().padStart(2, '0')}` : ''}
-                    </span>
-
+                  <div className="flex items-center gap-3">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRemoveSong(s.id);
                       }}
-                      className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition-colors"
+                      className="p-1.5 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
                       title="Remove from playlist"
                     >
                       <Trash2 className="w-4 h-4" />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ListMusic, Plus, Music, Loader2, ArrowRight } from 'lucide-react';
+import { ListMusic, Plus, Loader2, ArrowRight, Waves } from 'lucide-react';
 import { playlistService } from '../services/playlistService';
 import type { PlaylistView } from '../types';
 import { useAuth } from '../hooks/useAuth';
@@ -71,9 +71,9 @@ export const PlaylistsPage: React.FC = () => {
     return (
       <EmptyState
         icon={ListMusic}
-        title="Organize With Playlists"
-        description="Sign in to curate your personal track collections and customize mood sessions."
-        actionText="Log In"
+        title="Your Sound Collections"
+        description="Sign in to curate your personal playlists and custom mood journeys."
+        actionText="Sign In"
         onAction={() => navigate('/login')}
       />
     );
@@ -84,18 +84,18 @@ export const PlaylistsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
-            <ListMusic className="w-8 h-8 text-emerald-400" />
-            My Playlists
+          <h1 className="text-3xl font-black text-white flex items-center gap-3 font-display">
+            <ListMusic className="w-8 h-8 text-amber-400" />
+            Curated Playlists
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Create and manage customized tracklists
+            Personal track collections crafted for your daily rhythms
           </p>
         </div>
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 self-start sm:self-auto"
+          className="px-6 py-3 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Create Playlist
@@ -106,105 +106,91 @@ export const PlaylistsPage: React.FC = () => {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+          <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
         </div>
       ) : playlists.length === 0 ? (
         <EmptyState
           icon={ListMusic}
-          title="No playlists created yet"
-          description="Build your first custom playlist to group your favorite songs together."
+          title="Your flow is waiting"
+          description="Build your first custom soundscape to group songs that resonate with your day."
           actionText="Create Playlist"
           onAction={() => setShowCreateModal(true)}
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {playlists.map((pl) => (
+          {playlists.map((playlist) => (
             <div
-              key={pl.id}
-              onClick={() => navigate(`/playlists/${pl.id}`)}
-              className="group glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between h-52 cursor-pointer border border-white/5 hover:border-emerald-500/30 transition-all duration-300"
+              key={playlist.id}
+              onClick={() => navigate(`/playlists/${playlist.id}`)}
+              className="group p-5 rounded-3xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-amber-400/40 transition-all cursor-pointer flex flex-col justify-between h-48"
             >
-              <div className="flex items-start justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                  <Music className="w-6 h-6" />
+              <div>
+                <div className="w-10 h-10 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 mb-3 group-hover:scale-110 transition-transform">
+                  <Waves className="w-5 h-5" />
                 </div>
-                <ArrowRight className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
+                <h3 className="text-base font-bold text-white group-hover:text-amber-300 transition-colors line-clamp-1">
+                  {playlist.name}
+                </h3>
+                <p className="text-xs text-slate-400 line-clamp-2 mt-1">
+                  {playlist.description || 'Custom playlist'}
+                </p>
               </div>
 
-              <div>
-                <h3 className="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors truncate">
-                  {pl.name}
-                </h3>
-                <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">
-                  {pl.description || 'No description provided'}
-                </p>
-                <p className="text-[11px] font-semibold text-emerald-400 mt-3">
-                  {pl.songs?.length || 0} {pl.songs?.length === 1 ? 'song' : 'songs'}
-                </p>
+              <div className="flex items-center justify-between pt-2 text-xs text-slate-400 border-t border-white/5">
+                <span>{playlist.songs?.length || 0} tracks</span>
+                <span className="flex items-center gap-1 font-semibold group-hover:text-white transition-colors">
+                  Open <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </span>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Create Playlist Modal */}
+      {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md bg-[#12141f] border border-white/10 rounded-3xl p-6 shadow-2xl animate-in zoom-in-95">
-            <h3 className="text-lg font-bold text-white mb-1">New Playlist</h3>
-            <p className="text-xs text-slate-400 mb-5">
-              Give your playlist a title and optional description.
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-3xl bg-[#131522] border border-white/10 p-6 sm:p-8 space-y-5 shadow-2xl">
+            <h3 className="text-xl font-bold text-white font-display">Create New Playlist</h3>
 
             <form onSubmit={handleCreatePlaylist} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Playlist Name
-                </label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Playlist Name</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Late Night Beats"
+                  placeholder="e.g. Midnight Ambient Flow"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-                  autoFocus
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-amber-400"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Description
-                </label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Description (Optional)</label>
                 <textarea
-                  placeholder="What is the vibe of this playlist?"
+                  placeholder="What is the mood of this playlist?"
+                  rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 h-20 resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-amber-400 resize-none"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-2">
+              <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                  className="px-4 py-2 rounded-full text-xs text-slate-400 hover:text-white cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating || !name.trim()}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/25 disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/20 cursor-pointer"
                 >
-                  {isCreating ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    'Create Playlist'
-                  )}
+                  {isCreating ? 'Creating...' : 'Create'}
                 </button>
               </div>
             </form>

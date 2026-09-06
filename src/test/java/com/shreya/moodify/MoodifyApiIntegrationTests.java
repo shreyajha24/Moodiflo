@@ -110,36 +110,28 @@ class MoodifyApiIntegrationTests {
     }
 
     @Test
-    @DisplayName("Authorization: USER cannot perform ADMIN operations (403), ADMIN can (201)")
+    @DisplayName("Admin removed: admin account cannot login (401), demo user can login (200), and catalog mutation is disabled (405)")
     void testRoleAuthorization() {
-        // Register normal USER
-        String userEmail = "normaluser_" + System.currentTimeMillis() + "@example.com";
-        RegisterRequest regReq = new RegisterRequest("Normal User", userEmail, "Password1234!", "English");
-        AuthResponse userAuth = restTemplate.postForEntity(baseUrl + "/api/auth/register", regReq, AuthResponse.class).getBody();
-        assertThat(userAuth).isNotNull();
+        // 1. Verify admin account does not exist
+        LoginRequest adminLogin = new LoginRequest("admin@moodify.local", "MoodifyAdmin123!");
+        ResponseEntity<Map> adminLoginRes = restTemplate.postForEntity(baseUrl + "/api/auth/login", adminLogin, Map.class);
+        assertThat(adminLoginRes.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 
+        // 2. Verify standard demo user can login
+        LoginRequest demoLogin = new LoginRequest("demo@moodify.local", "DemoUser123!");
+        ResponseEntity<AuthResponse> demoAuthRes = restTemplate.postForEntity(baseUrl + "/api/auth/login", demoLogin, AuthResponse.class);
+        assertThat(demoAuthRes.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(demoAuthRes.getBody()).isNotNull();
+
+        // 3. Attempting to POST to /api/songs -> 405 METHOD_NOT_ALLOWED (mutating admin endpoint removed)
         SongRequest songReq = new SongRequest(
-                "Admin Song", "Admin Artist", "Admin Album", 200,
+                "Test Song", "Test Artist", "Test Album", 200,
                 "https://example.com/audio.mp3", "https://example.com/cover.jpg",
                 "English", "Pop", LocalDate.now(), "Description", 0.9
         );
-
-        // Normal USER attempts to POST song -> 403 FORBIDDEN
-        HttpEntity<SongRequest> userEntity = new HttpEntity<>(songReq, authHeaders(userAuth.token()));
+        HttpEntity<SongRequest> userEntity = new HttpEntity<>(songReq, authHeaders(demoAuthRes.getBody().token()));
         ResponseEntity<Map> userSongRes = restTemplate.postForEntity(baseUrl + "/api/songs", userEntity, Map.class);
-        assertThat(userSongRes.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-
-        // Login as seeded ADMIN
-        LoginRequest adminLogin = new LoginRequest("admin@moodify.local", "MoodifyAdmin123!");
-        AuthResponse adminAuth = restTemplate.postForEntity(baseUrl + "/api/auth/login", adminLogin, AuthResponse.class).getBody();
-        assertThat(adminAuth).isNotNull();
-
-        // ADMIN posts song -> 201 CREATED
-        HttpEntity<SongRequest> adminEntity = new HttpEntity<>(songReq, authHeaders(adminAuth.token()));
-        ResponseEntity<SongView> adminSongRes = restTemplate.postForEntity(baseUrl + "/api/songs", adminEntity, SongView.class);
-        assertThat(adminSongRes.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(adminSongRes.getBody()).isNotNull();
-        assertThat(adminSongRes.getBody().title()).isEqualTo("Admin Song");
+        assertThat(userSongRes.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     @Test

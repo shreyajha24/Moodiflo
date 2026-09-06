@@ -14,5 +14,5 @@ public class User {
     private String preferredLanguage;
     @Enumerated(EnumType.STRING) @Column(nullable=false) private Role role=Role.USER;
     private Instant createdAt=Instant.now(); private Instant updatedAt=Instant.now();
-    public enum Role { USER, ADMIN }
+    public enum Role { USER }
 }

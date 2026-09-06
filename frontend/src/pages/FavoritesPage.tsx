@@ -1,19 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { Heart, Play, Loader2 } from 'lucide-react';
 import { favoriteService } from '../services/favoriteService';
 import type { SongView } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { usePlayer } from '../hooks/usePlayer';
-import { SongCard } from '../components/common/SongCard';
+import { SoundPathRow } from '../components/common/SoundPathRow';
 import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
 import { getErrorMessage } from '../services/api';
+
+interface OutletContextType {
+  openAddToPlaylist: (song: SongView) => void;
+}
 
 export const FavoritesPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { playSong } = usePlayer();
+  const outletContext = useOutletContext<OutletContextType>();
 
   const [favorites, setFavorites] = useState<SongView[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -40,19 +45,13 @@ export const FavoritesPage: React.FC = () => {
     loadFavorites();
   }, [isAuthenticated]);
 
-  const handleFavoriteChange = (songId: number, isFav: boolean) => {
-    if (!isFav) {
-      setFavorites((prev) => prev.filter((s) => s.id !== songId));
-    }
-  };
-
   if (!isAuthenticated) {
     return (
       <EmptyState
         icon={Heart}
-        title="Save Your Favorite Music"
-        description="Log in to access your personal favorites library and sync across your sessions."
-        actionText="Log In Now"
+        title="Your Personal Sound Sanctuary"
+        description="Sign in to save music that resonates with your emotional flow."
+        actionText="Sign In"
         onAction={() => navigate('/login')}
       />
     );
@@ -63,22 +62,22 @@ export const FavoritesPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
+          <h1 className="text-3xl font-black text-white flex items-center gap-3 font-display">
             <Heart className="w-8 h-8 text-rose-500 fill-rose-500" />
-            Favorite Songs
+            Loved Tracks
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            {favorites.length} saved {favorites.length === 1 ? 'track' : 'tracks'}
+            {favorites.length} {favorites.length === 1 ? 'track' : 'tracks'} held close to your heart
           </p>
         </div>
 
         {favorites.length > 0 && (
           <button
-            onClick={() => playSong(favorites[0], favorites, 'FAVORITES')}
-            className="px-6 py-3 rounded-full bg-gradient-to-r from-rose-600 to-violet-600 hover:from-rose-500 hover:to-violet-500 text-white font-bold text-xs shadow-lg shadow-rose-600/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+            onClick={() => playSong(favorites[0], favorites, 'ROMANTIC')}
+            className="px-6 py-3 rounded-full bg-gradient-to-r from-rose-500 to-amber-400 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-rose-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
           >
             <Play className="w-4 h-4 fill-current" />
-            Play All Favorites
+            Flow Through Favorites
           </button>
         )}
       </div>
@@ -92,20 +91,21 @@ export const FavoritesPage: React.FC = () => {
       ) : favorites.length === 0 ? (
         <EmptyState
           icon={Heart}
-          title="No favorites saved yet"
-          description="Click the heart icon on any song to save it to your personal favorites collection."
-          actionText="Explore Songs"
-          onAction={() => navigate('/songs')}
+          title="Your heart space is quiet"
+          description="Save music that moves you to build your personal sanctuary."
+          actionText="Discover Moods"
+          onAction={() => navigate('/moods')}
         />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {favorites.map((song) => (
-            <SongCard
+        <div className="space-y-1.5">
+          {favorites.map((song, idx) => (
+            <SoundPathRow
               key={song.id}
+              index={idx}
               song={song}
-              isFavorite={true}
-              onFavoriteChange={handleFavoriteChange}
               playlistContext={favorites}
+              onAddToPlaylist={outletContext?.openAddToPlaylist}
+              activeMood="ROMANTIC"
             />
           ))}
         </div>

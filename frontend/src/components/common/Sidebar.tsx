@@ -47,10 +47,10 @@ export const Sidebar: React.FC = () => {
         </div>
         <div>
           <h1 className="text-xl font-black tracking-tight text-white flex items-center gap-1">
-            Moodify
-            <Sparkles className="w-4 h-4 text-violet-400 fill-violet-400" />
+            Mood<span className="mood-wave">iflo</span>
+            <Sparkles className="w-4 h-4 text-amber-400 fill-amber-400" />
           </h1>
-          <p className="text-[10px] text-slate-500 font-medium tracking-wider uppercase">Mood Music Discovery</p>
+          <p className="text-[10px] text-slate-500 font-medium tracking-wider uppercase">Vibe & Flow Music</p>
         </div>
       </NavLink>
 

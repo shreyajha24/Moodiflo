@@ -48,9 +48,12 @@ public class GlobalExceptionHandler {
         return body(401, "UNAUTHORIZED", e.getMessage() != null ? e.getMessage() : "Full authentication is required", r);
     }
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> internalError(Exception e, WebRequest r) {
-        return body(500, "INTERNAL_SERVER_ERROR", "An unexpected error occurred: " + e.getMessage(), r);
+        logger.error("Internal server error: ", e);
+        return body(500, "INTERNAL_SERVER_ERROR", "An unexpected error occurred. Please try again later.", r);
     }
 
     private ResponseEntity<Map<String, Object>> body(int status, String code, String msg, WebRequest r) {

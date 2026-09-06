@@ -62,9 +62,16 @@ public class SecurityConfig {
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        configuration.setAllowedOriginPatterns(java.util.List.of("http://localhost:[*]", "http://127.0.0.1:[*]"));
+        configuration.setAllowedOrigins(java.util.List.of(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://localhost:8080",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:3000",
+                "http://127.0.0.1:8080"
+        ));
         configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(java.util.List.of("*"));
+        configuration.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
@@ -77,6 +84,10 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.deny())
+                        .contentTypeOptions(contentType -> {})
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(authenticationEntryPoint())
@@ -94,13 +105,6 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         // Protected translation endpoint
                         .requestMatchers(HttpMethod.POST, "/api/songs/*/translate").authenticated()
-                        // Admin endpoints for modification of songs and moods
-                        .requestMatchers(HttpMethod.POST, "/api/songs/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/songs/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/songs/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/moods/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/moods/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/moods/**").hasRole("ADMIN")
                         // Protected user endpoints
                         .requestMatchers("/api/users/me/**").authenticated()
                         .requestMatchers("/api/playlists/**").authenticated()

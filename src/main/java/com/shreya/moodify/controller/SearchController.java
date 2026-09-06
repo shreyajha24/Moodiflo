@@ -3,6 +3,7 @@ import com.shreya.moodify.dto.ApiDtos.*;
 import com.shreya.moodify.service.SearchService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,7 @@ public class SearchController {
 
     @GetMapping
     public PageResponse<SongView> search(
-            @RequestParam(value = "q", defaultValue = "") String q,
+            @RequestParam(value = "q", defaultValue = "") @Size(max = 100) String q,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return service.search(q, page, size);

@@ -1,6 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Globe, Shield, Heart, ListMusic, History, LogOut, ArrowRight } from 'lucide-react';
+import { User, Mail, Globe, Heart, ListMusic, History, LogOut, ArrowRight } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { EmptyState } from '../components/common/EmptyState';
 
@@ -51,12 +51,6 @@ export const ProfilePage: React.FC = () => {
           <div className="flex-1 text-center sm:text-left space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <h1 className="text-2xl sm:text-3xl font-black text-white">{user.name}</h1>
-              {user.role && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-violet-500/20 text-violet-300 border border-violet-500/30 w-fit mx-auto sm:mx-0">
-                  <Shield className="w-3.5 h-3.5" />
-                  {user.role}
-                </span>
-              )}
             </div>
 
             <p className="text-sm text-slate-400 flex items-center justify-center sm:justify-start gap-2">
@@ -83,7 +77,7 @@ export const ProfilePage: React.FC = () => {
 
       {/* Quick Navigation Cards */}
       <div>
-        <h2 className="text-lg font-bold text-white mb-4">Your Moodify Activity</h2>
+        <h2 className="text-lg font-bold text-white mb-4 font-display">Your Moodiflo Space</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button
             onClick={() => navigate('/favorites')}

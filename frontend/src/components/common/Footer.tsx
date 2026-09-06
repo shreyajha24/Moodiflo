@@ -1,19 +1,36 @@
 import React from 'react';
-import { Disc3, Heart } from 'lucide-react';
+import { Waves, Sparkles } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="mt-20 border-t border-white/5 py-10 px-6 text-center text-xs text-slate-500">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Disc3 className="w-4 h-4 text-violet-500" />
-          <span className="font-bold text-slate-300">Moodify</span>
-          <span>• Mood-Driven Music Streaming & Discovery</span>
+    <footer className="mt-24 border-t border-white/[0.06] pt-12 pb-16 px-4 text-xs text-slate-500">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-center md:justify-start gap-2">
+            <Waves className="w-4 h-4 text-amber-400" />
+            <span className="font-bold text-slate-200 tracking-tight text-sm">
+              Mood<span className="mood-wave">iflo</span>
+            </span>
+            <span className="text-slate-600">•</span>
+            <span className="text-slate-400 font-medium">Music that responds to your mood</span>
+          </div>
+          <p className="text-[11px] text-slate-400 max-w-md">
+            Music for where you are — and where you want to go. Acknowledge, shift the vibe, and find your sound.
+          </p>
         </div>
-        <div className="flex items-center gap-1">
-          <span>Crafted with</span>
-          <Heart className="w-3.5 h-3.5 text-rose-500 fill-current" />
-          <span>for music lovers everywhere</span>
+
+        <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400 font-medium">
+          <NavLink to="/moods" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            Shift Your Mood
+          </NavLink>
+          <NavLink to="/songs" className="hover:text-slate-200 transition-colors">
+            Sound Vault
+          </NavLink>
+          <NavLink to="/search" className="hover:text-slate-200 transition-colors">
+            Search
+          </NavLink>
         </div>
       </div>
     </footer>

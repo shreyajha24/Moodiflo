@@ -4,7 +4,6 @@ export interface UserView {
   email: string;
   profileImage?: string | null;
   preferredLanguage?: string | null;
-  role?: string;
 }
 
 export interface RegisterRequest {

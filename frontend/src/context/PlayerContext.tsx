@@ -15,6 +15,7 @@ interface PlayerContextType {
   isMuted: boolean;
   isLyricsOpen: boolean;
   activeMood: string | null;
+  setActiveMood: (mood: string | null) => void;
   playSong: (song: SongView, newQueue?: SongView[], moodContext?: string) => void;
   togglePlay: () => void;
   pause: () => void;
@@ -289,6 +290,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         isMuted,
         isLyricsOpen,
         activeMood,
+        setActiveMood,
         playSong,
         togglePlay,
         pause,

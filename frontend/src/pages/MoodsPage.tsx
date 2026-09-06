@@ -5,28 +5,29 @@ import {
   Send,
   Loader2,
   Play,
-  RotateCcw,
+  Waves,
 } from 'lucide-react';
 import { moodService } from '../services/moodService';
 import type { MoodSessionResponse, MoodView, QueryResponse } from '../types';
 import { usePlayer } from '../hooks/usePlayer';
 import { useToast } from '../hooks/useToast';
 import { MoodCard } from '../components/common/MoodCard';
-import { SongCard } from '../components/common/SongCard';
+import { SoundPathRow } from '../components/common/SoundPathRow';
 import { MoodCardSkeleton } from '../components/common/SkeletonLoader';
 import { ErrorState } from '../components/common/ErrorState';
 import { getErrorMessage } from '../services/api';
+import { getMoodTheme, isLowMood, getShiftTargets } from '../utils/moodTheme';
 
 const SAMPLE_QUERIES = [
   'I need calming ambient music for deep focus and study',
   'High energy workout tracks to get pumped up',
-  'Romantic acoustic vibes for a dinner date',
-  'Late night nostalgic chill songs with great lyrics',
+  'Gentle acoustic songs to warm a quiet evening',
+  'Late night nostalgic chill with great lyrics',
 ];
 
 export const MoodsPage: React.FC = () => {
-  const { playSong } = usePlayer();
-  const { success, error } = useToast();
+  const { playSong, setActiveMood } = usePlayer();
+  const { success, error, info } = useToast();
 
   const [moods, setMoods] = useState<MoodView[]>([]);
   const [isLoadingMoods, setIsLoadingMoods] = useState<boolean>(true);
@@ -65,15 +66,18 @@ export const MoodsPage: React.FC = () => {
     loadMoods();
   }, []);
 
-  const handleQuerySubmit = async (queryText?: string) => {
-    const q = queryText || naturalQuery;
-    if (!q.trim()) return;
+  const handleQuerySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!naturalQuery.trim()) return;
 
     setIsQuerying(true);
     try {
-      const res = await moodService.discoverQuery(q.trim());
+      const res = await moodService.discoverQuery(naturalQuery.trim());
       setQueryResult(res);
-      success(`Identified mood: ${res.interpretedMood} (${Math.round(res.confidence * 100)}% match)`);
+      if (res.interpretedMood) {
+        setActiveMood(res.interpretedMood);
+      }
+      success(`Tuned into ${getMoodTheme(res.interpretedMood).displayName} wave (${Math.round(res.confidence * 100)}% match)`);
     } catch (err) {
       error(getErrorMessage(err));
     } finally {
@@ -91,6 +95,7 @@ export const MoodsPage: React.FC = () => {
         language: sessionLanguage,
       });
       setSessionResult(res);
+      setActiveMood(sessionMood);
       success(`Generated session: "${res.playlistName}"!`);
       setShowSessionModal(false);
     } catch (err) {
@@ -100,295 +105,312 @@ export const MoodsPage: React.FC = () => {
     }
   };
 
+  const detectedTheme = getMoodTheme(queryResult?.interpretedMood);
+  const isDetectedLow = isLowMood(queryResult?.interpretedMood);
+  const detectedShifts = getShiftTargets(queryResult?.interpretedMood);
+
   return (
-    <div className="space-y-14 pb-12">
-      {/* Header & Natural Language Discovery Hero */}
-      <section className="relative glass-panel rounded-3xl p-8 md:p-12 border border-white/10 overflow-hidden bg-gradient-to-br from-violet-950/40 via-slate-900/50 to-indigo-950/30">
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-violet-500/10 border border-violet-500/30 text-violet-300 text-xs font-semibold mb-4">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            Natural Language Emotion Discovery
-          </div>
-
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">
-            How Are You Feeling?
-          </h1>
-          <p className="text-slate-300 text-sm md:text-base leading-relaxed mb-8">
-            Tell Moodify your thoughts, current vibe, or activity in plain language. Our AI engine classifies your emotional tone and serves an instant sonic prescription.
-          </p>
-
-          {/* Search Box */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleQuerySubmit();
-            }}
-            className="relative flex items-center mb-4"
-          >
-            <input
-              type="text"
-              placeholder="e.g. 'I want something calm for late night reading'..."
-              value={naturalQuery}
-              onChange={(e) => setNaturalQuery(e.target.value)}
-              className="w-full pl-5 pr-28 py-4 rounded-2xl bg-black/40 border border-white/15 text-sm md:text-base text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:bg-black/60 shadow-xl transition-all"
-            />
-            <button
-              type="submit"
-              disabled={isQuerying || !naturalQuery.trim()}
-              className="absolute right-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 disabled:opacity-50 transition-all flex items-center gap-1.5"
-            >
-              {isQuerying ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <span>Discover</span>
-                  <Send className="w-3.5 h-3.5" />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Quick Prompts */}
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-slate-400 font-medium">Try asking:</span>
-            {SAMPLE_QUERIES.map((sq, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => {
-                  setNaturalQuery(sq);
-                  handleQuerySubmit(sq);
-                }}
-                className="px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-colors truncate max-w-xs"
-              >
-                "{sq}"
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Query Results Section (if active) */}
-      {queryResult && (
-        <section className="glass-panel p-6 md:p-8 rounded-3xl border border-violet-500/30 bg-violet-950/20 space-y-6 animate-in fade-in duration-300">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <h3 className="text-2xl font-black text-white">
-                  Identified Mood: <span className="text-violet-400">{queryResult.interpretedMood}</span>
-                </h3>
-                <span className="px-3 py-1 rounded-full bg-violet-500/20 border border-violet-500/40 text-violet-300 text-xs font-bold">
-                  {Math.round(queryResult.confidence * 100)}% Confidence
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Found {queryResult.songs.length} tailored tracks for your prompt
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {queryResult.songs.length > 0 && (
-                <button
-                  onClick={() => playSong(queryResult.songs[0], queryResult.songs, queryResult.interpretedMood)}
-                  className="px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-600 to-cyan-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-violet-600/30 hover:scale-105 active:scale-95 transition-all"
-                >
-                  <Play className="w-4 h-4 fill-current" />
-                  Play All Matches
-                </button>
-              )}
-              <button
-                onClick={() => setQueryResult(null)}
-                className="p-2 text-slate-400 hover:text-white"
-                title="Dismiss"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {queryResult.songs.map((song) => (
-              <SongCard
-                key={song.id}
-                song={song}
-                playlistContext={queryResult.songs}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Mood Session Generator Trigger Banner */}
-      <section className="glass-panel rounded-3xl p-6 md:p-8 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-indigo-950/30 via-slate-900 to-violet-950/20">
+    <div className="space-y-16 pb-12">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <Sliders className="w-4 h-4" />
-            Custom Session Mode
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">
+            <Sparkles className="w-4 h-4" />
+            Emotional Frequency
           </div>
-          <h2 className="text-xl md:text-2xl font-bold text-white">
-            Fine-Tune Your Mood Intensity Session
-          </h2>
-          <p className="text-xs text-slate-400 max-w-xl mt-1">
-            Dial in precise intensity percentages and target music languages to synthesize a dedicated listening session.
+          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight font-display">
+            Shift Your Vibe
+          </h1>
+          <p className="text-sm sm:text-base text-slate-400 mt-1 max-w-xl">
+            Explore our curated emotional states, describe how you feel in plain human language, or craft a personalized mood journey.
           </p>
         </div>
 
         <button
           onClick={() => setShowSessionModal(true)}
-          className="px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/20 hover:scale-105 active:scale-95 transition-all shrink-0 flex items-center gap-2"
+          className="flex items-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 hover:opacity-90 text-slate-950 font-extrabold text-xs shadow-xl shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all w-fit cursor-pointer"
         >
           <Sliders className="w-4 h-4" />
-          Configure Session
+          Craft Custom Session
         </button>
-      </section>
+      </div>
 
-      {/* Generated Session Results (if active) */}
-      {sessionResult && (
-        <section className="glass-panel p-6 md:p-8 rounded-3xl border border-indigo-500/30 bg-indigo-950/20 space-y-6 animate-in fade-in duration-300">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-            <div>
-              <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider">
-                Active Session
-              </span>
-              <h3 className="text-2xl font-black text-white">{sessionResult.playlistName}</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Mood: <span className="font-semibold text-white">{sessionResult.mood}</span> • {sessionResult.songs.length} tracks
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {sessionResult.songs.length > 0 && (
-                <button
-                  onClick={() => playSong(sessionResult.songs[0], sessionResult.songs, sessionResult.mood)}
-                  className="px-5 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/30 hover:scale-105 active:scale-95 transition-all"
-                >
-                  <Play className="w-4 h-4 fill-current" />
-                  Play Session
-                </button>
-              )}
-              <button
-                onClick={() => setSessionResult(null)}
-                className="p-2 text-slate-400 hover:text-white"
-                title="Close"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-            </div>
+      {/* 1. Natural Language Emotion Finder */}
+      <section className="rounded-3xl p-6 sm:p-8 bg-white/[0.03] border border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="max-w-3xl space-y-4">
+          <div className="space-y-1">
+            <h2 className="text-xl sm:text-2xl font-black text-white font-display flex items-center gap-2">
+              <Waves className="w-5 h-5 text-amber-400" />
+              Describe How You Feel
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400">
+              Type anything from &quot;exhausted after a long week&quot; to &quot;bursting with creative inspiration&quot;. Moodiflo will interpret your state and tune your soundscape.
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {sessionResult.songs.map((song) => (
-              <SongCard
+          <form onSubmit={handleQuerySubmit} className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              placeholder="e.g. I need something gentle and calming for late night writing..."
+              value={naturalQuery}
+              onChange={(e) => setNaturalQuery(e.target.value)}
+              className="flex-1 px-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400/60 focus:bg-white/10 transition-all"
+            />
+            <button
+              type="submit"
+              disabled={isQuerying || !naturalQuery.trim()}
+              className="px-6 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-400/20 transition-all cursor-pointer shrink-0"
+            >
+              {isQuerying ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Interpreting...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Tune In
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Quick inspiration chips */}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <span className="text-[11px] font-semibold text-slate-400">Try asking:</span>
+            {SAMPLE_QUERIES.map((sample, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setNaturalQuery(sample)}
+                className="text-[11px] px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/5 transition-all cursor-pointer"
+              >
+                &ldquo;{sample}&rdquo;
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Query Results Section */}
+        {queryResult && (
+          <div className="mt-8 pt-6 border-t border-white/10 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{detectedTheme.emoji}</span>
+                  <h3 className="text-xl font-black text-white font-display">
+                    Detected Mood: <span className="capitalize">{detectedTheme.displayName}</span>
+                  </h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 text-amber-300 border border-white/10">
+                    {Math.round(queryResult.confidence * 100)}% Match
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">{detectedTheme.vibeTagline}</p>
+              </div>
+
+              {queryResult.songs.length > 0 && (
+                <button
+                  onClick={() => playSong(queryResult.songs[0], queryResult.songs, queryResult.interpretedMood)}
+                  className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/15 text-white font-bold text-xs flex items-center gap-2 border border-white/10 cursor-pointer"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  Play Matched Soundscape
+                </button>
+              )}
+            </div>
+
+            {/* If detected low/sad, offer immediate shift bridge */}
+            {isDetectedLow && (
+              <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2">
+                <p className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Feeling low? Shift the vibe forward:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {detectedShifts.map((sh) => (
+                    <button
+                      key={sh.targetMood}
+                      onClick={() => {
+                        setActiveMood(sh.targetMood);
+                        info(`Shifting vibe toward ${sh.label}!`);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-white font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <span>{sh.emoji}</span>
+                      <span>{sh.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Matched Songs List */}
+            <div className="space-y-1.5">
+              {queryResult.songs.map((song, idx) => (
+                <SoundPathRow
+                  key={song.id}
+                  index={idx}
+                  song={song}
+                  playlistContext={queryResult.songs}
+                  activeMood={queryResult.interpretedMood}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* 2. Custom Session Result Banner */}
+      {sessionResult && (
+        <section className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-amber-500/20 via-rose-500/10 to-violet-500/20 border border-amber-400/30 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-300">Custom Session Created</span>
+              <h3 className="text-2xl font-black text-white font-display">{sessionResult.playlistName}</h3>
+              <p className="text-xs text-slate-300">{sessionResult.songs.length} tracks tailored to your flow</p>
+            </div>
+            {sessionResult.songs.length > 0 && (
+              <button
+                onClick={() => playSong(sessionResult.songs[0], sessionResult.songs, sessionResult.mood)}
+                className="px-6 py-3 rounded-full bg-white text-slate-950 font-black text-xs flex items-center gap-2 shadow-xl hover:scale-105 transition-all cursor-pointer"
+              >
+                <Play className="w-4 h-4 fill-current" />
+                Play Session
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-1.5 pt-2">
+            {sessionResult.songs.map((song, idx) => (
+              <SoundPathRow
                 key={song.id}
+                index={idx}
                 song={song}
                 playlistContext={sessionResult.songs}
+                activeMood={sessionResult.mood}
               />
             ))}
           </div>
         </section>
       )}
 
-      {/* Mood Catalog Grid */}
+      {/* 3. The 12 Mood Archetypes Catalog */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white">All Mood Atmospheres</h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Browse our full taxonomy of 12 classified mood ecosystems
+          <h2 className="text-2xl sm:text-3xl font-black text-white font-display">
+            The Mood Archetypes
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Dive into any frequency to discover hand-curated tracks and dedicated soundscapes.
           </p>
         </div>
 
         {errorMessage && <ErrorState message={errorMessage} onRetry={loadMoods} />}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {isLoadingMoods
-            ? Array(8)
-                .fill(0)
-                .map((_, i) => <MoodCardSkeleton key={i} />)
-            : moods.map((m) => <MoodCard key={m.id} mood={m} />)}
-        </div>
+        {isLoadingMoods ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <MoodCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {moods.map((mood) => (
+              <MoodCard key={mood.id} mood={mood} />
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Mood Session Modal */}
+      {/* Custom Session Modal */}
       {showSessionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md bg-[#12141f] border border-white/10 rounded-3xl p-6 shadow-2xl animate-in zoom-in-95">
-            <h3 className="text-lg font-bold text-white mb-1">Create Mood Session</h3>
-            <p className="text-xs text-slate-400 mb-6">
-              Synthesize a dynamic playlist matched to your target emotion.
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-lg rounded-3xl bg-[#131522] border border-white/10 p-6 sm:p-8 space-y-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-black text-white font-display">Craft Mood Session</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Customize frequency, intensity, and language</p>
+              </div>
+              <button
+                onClick={() => setShowSessionModal(false)}
+                className="text-slate-400 hover:text-white text-xl font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
 
             <form onSubmit={handleCreateSession} className="space-y-5">
-              {/* Mood Select */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Target Mood
-                </label>
-                <select
-                  value={sessionMood}
-                  onChange={(e) => setSessionMood(e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500"
-                >
-                  {moods.map((m) => (
-                    <option key={m.id} value={m.name}>
-                      {m.emoji} {m.name}
-                    </option>
+              {/* Mood Pick */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-300">Target Emotion</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {moods.slice(0, 9).map((m) => (
+                    <button
+                      type="button"
+                      key={m.id}
+                      onClick={() => setSessionMood(m.name)}
+                      className={`p-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 justify-center border transition-all cursor-pointer ${
+                        sessionMood === m.name
+                          ? 'bg-amber-400/20 border-amber-400 text-white'
+                          : 'bg-white/5 border-white/5 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <span>{getMoodTheme(m.name).emoji}</span>
+                      <span className="capitalize">{getMoodTheme(m.name).displayName}</span>
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
               {/* Intensity Slider */}
-              <div>
-                <div className="flex justify-between items-center mb-2 text-xs font-semibold text-slate-300">
-                  <span className="uppercase tracking-wider">Intensity Level</span>
-                  <span className="text-violet-400">{Math.round(sessionIntensity * 100)}%</span>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="font-bold text-slate-300">Intensity Level</span>
+                  <span className="font-mono text-amber-400 font-bold">{Math.round(sessionIntensity * 100)}%</span>
                 </div>
                 <input
                   type="range"
-                  min="0.1"
+                  min="0.2"
                   max="1.0"
                   step="0.05"
                   value={sessionIntensity}
                   onChange={(e) => setSessionIntensity(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-slate-800 accent-violet-500 rounded-lg cursor-pointer"
+                  className="w-full accent-amber-400 cursor-pointer"
                 />
-                <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                  <span>Mellow (10%)</span>
-                  <span>Moderate (50%)</span>
-                  <span>Intense (100%)</span>
+                <div className="flex justify-between text-[10px] text-slate-500">
+                  <span>Subtle & Gentle</span>
+                  <span>Peak & Immersive</span>
                 </div>
               </div>
 
               {/* Language */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Language Preference
-                </label>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-300">Preferred Track Language</label>
                 <select
                   value={sessionLanguage}
                   onChange={(e) => setSessionLanguage(e.target.value)}
-                  className="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-amber-400"
                 >
-                  <option value="English">English</option>
-                  <option value="Spanish">Spanish</option>
-                  <option value="Hindi">Hindi</option>
-                  <option value="French">French</option>
-                  <option value="German">German</option>
+                  <option value="English" className="bg-[#141622]">English</option>
+                  <option value="Hindi" className="bg-[#141622]">Hindi</option>
+                  <option value="Spanish" className="bg-[#141622]">Spanish</option>
+                  <option value="French" className="bg-[#141622]">French</option>
+                  <option value="Korean" className="bg-[#141622]">Korean</option>
                 </select>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center justify-end gap-3 pt-2">
+              <div className="pt-2 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowSessionModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                  className="px-5 py-2.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isGeneratingSession}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-violet-600/25 disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
                 >
                   {isGeneratingSession ? (
                     <>
@@ -396,10 +418,7 @@ export const MoodsPage: React.FC = () => {
                       Generating...
                     </>
                   ) : (
-                    <>
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Start Session
-                    </>
+                    'Generate Session'
                   )}
                 </button>
               </div>

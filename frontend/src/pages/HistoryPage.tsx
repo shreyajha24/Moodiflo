@@ -1,19 +1,24 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { History, Play, Loader2, Music2 } from 'lucide-react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
+import { History, Play, Loader2, Waves } from 'lucide-react';
 import { historyService } from '../services/historyService';
 import type { SongView } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { usePlayer } from '../hooks/usePlayer';
-import { SongCard } from '../components/common/SongCard';
+import { SoundPathRow } from '../components/common/SoundPathRow';
 import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
 import { getErrorMessage } from '../services/api';
+
+interface OutletContextType {
+  openAddToPlaylist: (song: SongView) => void;
+}
 
 export const HistoryPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { playSong } = usePlayer();
+  const outletContext = useOutletContext<OutletContextType>();
 
   const [history, setHistory] = useState<SongView[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -44,9 +49,9 @@ export const HistoryPage: React.FC = () => {
     return (
       <EmptyState
         icon={History}
-        title="Listening History"
-        description="Log in to track songs you've played and resume your musical journeys anytime."
-        actionText="Log In Now"
+        title="Your Flow Journey"
+        description="Sign in to revisit tracks you've streamed and resume your musical journeys anytime."
+        actionText="Sign In"
         onAction={() => navigate('/login')}
       />
     );
@@ -57,9 +62,9 @@ export const HistoryPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
-            <History className="w-8 h-8 text-cyan-400" />
-            Recently Played
+          <h1 className="text-3xl font-black text-white flex items-center gap-3 font-display">
+            <History className="w-8 h-8 text-amber-400" />
+            Flow History
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             {history.length} {history.length === 1 ? 'track' : 'tracks'} recorded from your listening sessions
@@ -68,11 +73,11 @@ export const HistoryPage: React.FC = () => {
 
         {history.length > 0 && (
           <button
-            onClick={() => playSong(history[0], history, 'HISTORY')}
-            className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+            onClick={() => playSong(history[0], history, 'FOCUS')}
+            className="px-6 py-3 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
           >
             <Play className="w-4 h-4 fill-current" />
-            Play Recent Songs
+            Replay Stream
           </button>
         )}
       </div>
@@ -81,23 +86,26 @@ export const HistoryPage: React.FC = () => {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
         </div>
       ) : history.length === 0 ? (
         <EmptyState
-          icon={Music2}
-          title="No listening history yet"
-          description="Start playing some music or explore mood playlists to see your history here."
+          icon={Waves}
+          title="No stream history yet"
+          description="Begin playing songs or exploring mood sessions to see your flow recorded here."
           actionText="Discover Moods"
           onAction={() => navigate('/moods')}
         />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="space-y-1.5">
           {history.map((song, index) => (
-            <SongCard
+            <SoundPathRow
               key={`${song.id}-${index}`}
+              index={index}
               song={song}
               playlistContext={history}
+              onAddToPlaylist={outletContext?.openAddToPlaylist}
+              activeMood="FOCUS"
             />
           ))}
         </div>

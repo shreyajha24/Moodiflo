@@ -47,12 +47,12 @@ export const SongsPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
-            <Music4 className="w-8 h-8 text-cyan-400" />
-            Song Catalog
+          <h1 className="text-3xl font-black text-white flex items-center gap-3 font-display">
+            <Music4 className="w-8 h-8 text-amber-400" />
+            Sound Vault
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Browse through all tracks available in the Moodify library ({pageData?.totalElements || 0} total)
+            Explore tracks across all genres in the Moodiflo vault ({pageData?.totalElements || 0} total)
           </p>
         </div>
 

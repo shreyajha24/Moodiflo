@@ -1,6 +1,6 @@
 @echo off
-set "DB_URL=jdbc:mysql://localhost:3306/moodify?createDatabaseIfNotExist=true&serverTimezone=UTC"
-set "DB_USERNAME=root"
-set "DB_PASSWORD=Shreya@24"
-set "JWT_SECRET=moodify-super-secret-jwt-key-for-development-must-be-at-least-256-bits-long!"
+if "%DB_URL%"=="" set "DB_URL=jdbc:mysql://localhost:3306/moodify?createDatabaseIfNotExist=true&serverTimezone=UTC"
+if "%DB_USERNAME%"=="" set "DB_USERNAME=root"
+if "%DB_PASSWORD%"=="" set /p "DB_PASSWORD=Enter Database Password: "
+if "%JWT_SECRET%"=="" set /p "JWT_SECRET=Enter JWT Secret (min 256 bits): "
 java -jar target\Moodify-0.0.1-SNAPSHOT.jar

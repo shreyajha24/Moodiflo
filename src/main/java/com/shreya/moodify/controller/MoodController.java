@@ -3,8 +3,7 @@ package com.shreya.moodify.controller;
 import com.shreya.moodify.dto.ApiDtos.*;
 import com.shreya.moodify.service.MoodService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,25 +29,6 @@ public class MoodController {
         return Map.of("mood", name.toUpperCase(), "songs", service.recommendations(name));
     }
 
-    @PostMapping("/moods")
-    @PreAuthorize("hasRole('ADMIN')")
-    @ResponseStatus(HttpStatus.CREATED)
-    public MoodView create(@Valid @RequestBody MoodRequest r) {
-        return service.create(r);
-    }
-
-    @PutMapping("/moods/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public MoodView update(@PathVariable Long id, @Valid @RequestBody MoodRequest r) {
-        return service.update(id, r);
-    }
-
-    @DeleteMapping("/moods/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        service.delete(id);
-    }
 
     @PostMapping("/mood-session")
     public MoodSessionResponse session(@Valid @RequestBody MoodSessionRequest r) {

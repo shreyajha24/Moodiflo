@@ -37,7 +37,7 @@ export const RegisterPage: React.FC = () => {
         password,
         preferredLanguage,
       });
-      success('Account created! Welcome to Moodify.');
+      success('Account created! Welcome to Moodiflo.');
       navigate('/home');
     } catch (err) {
       setErrorMessage(getErrorMessage(err));
@@ -50,21 +50,21 @@ export const RegisterPage: React.FC = () => {
     <div className="min-h-[80vh] flex items-center justify-center py-10 px-4">
       <div className="relative w-full max-w-md">
         {/* Glow backdrop */}
-        <div className="absolute -top-10 -left-10 w-72 h-72 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-72 h-72 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-rose-500/15 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 glass-panel rounded-3xl p-8 border border-white/10 shadow-2xl">
+        <div className="relative z-10 rounded-3xl p-8 bg-[#131522] border border-white/10 shadow-2xl">
           {/* Brand & Heading */}
           <div className="text-center mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 mb-3 group">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-violet-600/30">
-                <Disc3 className="w-6 h-6" />
+            <Link to="/" className="inline-flex items-center gap-2.5 mb-3 group">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-amber-400/20">
+                <Disc3 className="w-5 h-5 text-amber-300" />
               </div>
-              <span className="text-2xl font-black text-white">Moodify</span>
+              <span className="text-2xl font-black text-white">Mood<span className="mood-wave">iflo</span></span>
             </Link>
-            <h2 className="text-xl font-bold text-white">Create Your Account</h2>
+            <h2 className="text-xl font-bold text-white font-display">Create Your Account</h2>
             <p className="text-xs text-slate-400 mt-1">
-              Start experiencing personalized mood-based music
+              Start experiencing music that responds to your mood
             </p>
           </div>
 
