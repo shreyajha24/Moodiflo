@@ -179,7 +179,7 @@ public class SpotifyService {
     // ─────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
-    public List<SongView> searchByMood(String mood, String userEmail) {
+    public List<SongView> searchByMood(String mood, String userEmail, int offset, int limit) {
         if (!config.isConfigured()) {
             return List.of(); // caller falls back to DB recommendations
         }
@@ -204,7 +204,8 @@ public class SpotifyService {
         }
 
         try {
-            String url = SPOTIFY_API + "/search?type=track&limit=20&q=" + encode(query);
+            String url = SPOTIFY_API + "/search?type=track&limit=" + limit
+                    + "&offset=" + offset + "&q=" + encode(query);
             String body = webClient.get()
                     .uri(url)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
@@ -351,7 +352,9 @@ public class SpotifyService {
                         null,          // releaseDate
                         null,          // description
                         spotifyUri,    // spotifyUri for SDK playback
-                        id             // spotifyTrackId
+                        id,            // spotifyTrackId
+                        "SPOTIFY",
+                        id             // providerTrackId
                 ));
             } catch (Exception e) {
                 log.debug("Skipping malformed Spotify track: {}", e.getMessage());

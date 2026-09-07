@@ -18,13 +18,15 @@ public class MoodService {
     private final SongMoodRepository links;
     private final RecommendationService recommendationService;
     private final SpotifyService spotifyService;
+    private final MusicProvider musicProvider;
 
     public MoodService(MoodRepository m, SongMoodRepository l, RecommendationService recService,
-                       SpotifyService spotifyService) {
+                       SpotifyService spotifyService, MusicProvider musicProvider) {
         this.moods = m;
         this.links = l;
         this.recommendationService = recService;
         this.spotifyService = spotifyService;
+        this.musicProvider = musicProvider;
     }
 
     @Transactional(readOnly = true)
@@ -51,17 +53,34 @@ public class MoodService {
 
     @Transactional(readOnly = true)
     public List<SongView> recommendations(String name, String userEmail) {
+        return recommendationsPage(name, userEmail, 0, 20).songs();
+    }
+
+    @Transactional(readOnly = true)
+    public MusicProvider.MusicPage recommendationsPage(String name, String userEmail, int page, int limit) {
         get(name);
-        List<SongView> spotifyTracks = spotifyService.searchByMood(name, userEmail);
-        return spotifyTracks.isEmpty()
-                ? recommendationService.recommendForMood(name, null, null, 20)
-                : spotifyTracks;
+        List<SongView> spotifyPreviews = spotifyService.searchByMood(name, userEmail, page * limit, limit).stream()
+                .filter(track -> track.audioUrl() != null && !track.audioUrl().isBlank())
+                .toList();
+        if (!spotifyPreviews.isEmpty()) {
+            return new MusicProvider.MusicPage(spotifyPreviews, spotifyPreviews.size() == limit);
+        }
+
+        MusicProvider.MusicPage legalTracks = musicProvider.getTracksForMood(name, page, limit);
+        if (!legalTracks.songs().isEmpty()) return legalTracks;
+
+        List<SongView> dbFallback = recommendationService.recommendForMood(name, null, null, limit).stream()
+                .filter(track -> track.audioUrl() != null
+                        && !track.audioUrl().isBlank()
+                        && !track.audioUrl().contains("example.com"))
+                .toList();
+        return new MusicProvider.MusicPage(dbFallback, false);
     }
 
     @Transactional(readOnly = true)
     public MoodSessionResponse session(MoodSessionRequest r) {
         String moodName = get(r.mood()).getName();
-        List<SongView> songs = recommendationService.recommendForMood(r.mood(), r.language(), r.intensity(), 20);
+        List<SongView> songs = recommendationsPage(r.mood(), null, 0, 20).songs();
         String playlistName = (r.language() != null && !r.language().isBlank() ? r.language() + " " : "")
                 + moodName.substring(0, 1).toUpperCase() + moodName.substring(1).toLowerCase() + " Session";
         return new MoodSessionResponse(UUID.randomUUID().toString(), moodName, playlistName, songs);

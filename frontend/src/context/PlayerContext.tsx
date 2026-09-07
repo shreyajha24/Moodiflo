@@ -48,11 +48,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isLyricsOpen, setIsLyricsOpen] = useState<boolean>(false);
   const [activeMood, setActiveMood] = useState<string | null>(null);
   const [spotifyConnected, setSpotifyConnected] = useState(false);
+  const [spotifyProduct, setSpotifyProduct] = useState<string | null>(null);
   const [spotifyError, setSpotifyError] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const simulatedTimerRef = useRef<number | null>(null);
-  const isSimulatedRef = useRef<boolean>(false);
   const historyRecordedRef = useRef<boolean>(false);
   const spotifyPlayerRef = useRef<SpotifyPlayer | null>(null);
   const spotifyDeviceIdRef = useRef<string | null>(null);
@@ -62,16 +61,26 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (!isAuthenticated) {
       setSpotifyConnected(false);
+      setSpotifyProduct(null);
       spotifyPlayerRef.current?.disconnect();
       spotifyPlayerRef.current = null;
       spotifyInitRef.current = null;
       spotifyTokenRef.current = null;
       return;
     }
-    spotifyService.getStatus().then((status) => setSpotifyConnected(status.connected)).catch(() => setSpotifyConnected(false));
+    spotifyService.getStatus().then((status) => {
+      setSpotifyConnected(status.connected);
+      setSpotifyProduct(status.product || null);
+    }).catch(() => {
+      setSpotifyConnected(false);
+      setSpotifyProduct(null);
+    });
   }, [isAuthenticated]);
 
   const ensureSpotifyPlayer = useCallback(async (): Promise<SpotifyPlayer> => {
+    if (!spotifyConnected || spotifyProduct !== 'premium') {
+      throw new Error("Spotify playback isn't available. Moodiflo is using its available music source.");
+    }
     if (spotifyPlayerRef.current) return spotifyPlayerRef.current;
     if (spotifyInitRef.current) return spotifyInitRef.current;
 
@@ -137,7 +146,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       spotifyInitRef.current = null;
       throw error;
     }
-  }, [isMuted, volume]);
+  }, [isMuted, spotifyConnected, spotifyProduct, volume]);
 
   const playSpotifyTrack = useCallback(async (song: SongView) => {
     try {
@@ -167,7 +176,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     audioRef.current = audio;
 
     const handleTimeUpdate = () => {
-      if (!isSimulatedRef.current && audio.duration) {
+      if (audio.duration) {
         setCurrentTime(audio.currentTime);
         setDuration(audio.duration);
       }
@@ -178,8 +187,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
 
     const handleError = () => {
-      // If audio fails to load (e.g. example.com dummy URL), fallback to simulated playback
-      isSimulatedRef.current = true;
+      setIsPlaying(false);
+      setSpotifyError('Unable to play this audio source.');
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -191,39 +200,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
       audio.pause();
-      if (simulatedTimerRef.current) {
-        clearInterval(simulatedTimerRef.current);
-      }
     };
   }, []);
-
-  // Handle simulated playback when real audio is dummy/invalid URL
-  useEffect(() => {
-    if (isPlaying) {
-      simulatedTimerRef.current = window.setInterval(() => {
-        setCurrentTime((prev) => {
-          const songDuration = currentSong?.duration || 180;
-          if (prev >= songDuration) {
-            handleSongCompleted();
-            return 0;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    } else {
-      if (simulatedTimerRef.current) {
-        clearInterval(simulatedTimerRef.current);
-        simulatedTimerRef.current = null;
-      }
-    }
-
-    return () => {
-      if (simulatedTimerRef.current) {
-        clearInterval(simulatedTimerRef.current);
-        simulatedTimerRef.current = null;
-      }
-    };
-  }, [isPlaying, currentSong]);
 
   // Record history when passing 80%
   useEffect(() => {
@@ -267,7 +245,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (audioRef.current && nextSong.audioUrl) {
         audioRef.current.src = nextSong.audioUrl;
         audioRef.current.play().catch(() => {
-          isSimulatedRef.current = true;
+          setIsPlaying(false);
+          setSpotifyError('Unable to play this audio source.');
         });
       }
     } else {
@@ -281,7 +260,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCurrentTime(0);
     setDuration(song.duration || 180);
     historyRecordedRef.current = false;
-    isSimulatedRef.current = false;
     if (moodContext) {
       setActiveMood(moodContext);
     }
@@ -295,37 +273,40 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setCurrentIndex(0);
     }
 
-    if (song.spotifyTrackId || song.spotifyUri) {
+    if ((song.spotifyTrackId || song.spotifyUri) && !song.audioUrl) {
       void playSpotifyTrack(song);
+      setIsPlaying(true);
     } else if (audioRef.current && song.audioUrl) {
       audioRef.current.src = song.audioUrl;
       audioRef.current.volume = isMuted ? 0 : volume;
       audioRef.current.play().catch(() => {
-        isSimulatedRef.current = true;
+        setIsPlaying(false);
+        setSpotifyError('Unable to play this audio source.');
       });
+      setIsPlaying(true);
     } else {
-      isSimulatedRef.current = true;
+      setIsPlaying(false);
+      setSpotifyError('This track has no playable audio source.');
     }
-
-    setIsPlaying(true);
   }, [isMuted, playSpotifyTrack, queue.length, volume]);
 
   const togglePlay = useCallback(() => {
     if (!currentSong) return;
 
     if (isPlaying) {
-      if (currentSong.spotifyTrackId || currentSong.spotifyUri) {
+      if ((currentSong.spotifyTrackId || currentSong.spotifyUri) && !currentSong.audioUrl) {
         void spotifyPlayerRef.current?.pause();
       } else {
         audioRef.current?.pause();
         setIsPlaying(false);
       }
     } else {
-      if (currentSong.spotifyTrackId || currentSong.spotifyUri) {
+      if ((currentSong.spotifyTrackId || currentSong.spotifyUri) && !currentSong.audioUrl) {
         void spotifyPlayerRef.current?.resume();
-      } else if (!isSimulatedRef.current && audioRef.current && currentSong.audioUrl) {
+      } else if (audioRef.current && currentSong.audioUrl) {
         audioRef.current.play().catch(() => {
-          isSimulatedRef.current = true;
+          setIsPlaying(false);
+          setSpotifyError('Unable to play this audio source.');
         });
       }
       setIsPlaying(true);
@@ -333,18 +314,19 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [currentSong, isPlaying]);
 
   const pause = useCallback(() => {
-    if (currentSong?.spotifyTrackId || currentSong?.spotifyUri) void spotifyPlayerRef.current?.pause();
+    if ((currentSong?.spotifyTrackId || currentSong?.spotifyUri) && !currentSong.audioUrl) void spotifyPlayerRef.current?.pause();
     else audioRef.current?.pause();
     setIsPlaying(false);
   }, [currentSong]);
 
   const resume = useCallback(() => {
     if (!currentSong) return;
-    if (currentSong.spotifyTrackId || currentSong.spotifyUri) {
+    if ((currentSong.spotifyTrackId || currentSong.spotifyUri) && !currentSong.audioUrl) {
       void spotifyPlayerRef.current?.resume();
-    } else if (!isSimulatedRef.current && audioRef.current && currentSong.audioUrl) {
+    } else if (audioRef.current && currentSong.audioUrl) {
       audioRef.current.play().catch(() => {
-        isSimulatedRef.current = true;
+      setIsPlaying(false);
+      setSpotifyError('Unable to play this audio source.');
       });
     }
     setIsPlaying(true);
@@ -369,9 +351,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const seek = useCallback((percentage: number) => {
     const targetTime = (percentage / 100) * duration;
     setCurrentTime(targetTime);
-    if (currentSong?.spotifyTrackId || currentSong?.spotifyUri) {
+    if ((currentSong?.spotifyTrackId || currentSong?.spotifyUri) && !currentSong.audioUrl) {
       void spotifyPlayerRef.current?.seek(targetTime * 1000);
-    } else if (audioRef.current && !isSimulatedRef.current) {
+    } else if (audioRef.current) {
       audioRef.current.currentTime = targetTime;
     }
   }, [currentSong, duration]);

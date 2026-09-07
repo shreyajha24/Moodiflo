@@ -24,6 +24,8 @@ export const MoodDetailPage: React.FC = () => {
 
   const [songs, setSongs] = useState<SongView[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const moodKey = name ? name.toUpperCase() : 'HAPPY';
@@ -31,18 +33,25 @@ export const MoodDetailPage: React.FC = () => {
   const isQuiet = isLowMood(moodKey);
   const shiftOptions = getShiftTargets(moodKey);
 
-  const loadRecommendations = async () => {
+  const loadRecommendations = async (page = 0) => {
     if (!name) return;
-    setIsLoading(true);
+    if (page === 0) setIsLoading(true);
+    else setIsLoadingMore(true);
     setErrorMessage(null);
     try {
-      const data = await moodService.getRecommendations(name);
-      setSongs(data.songs);
+      const data = await moodService.getRecommendations(name, page, 20);
+      setSongs((previous) => {
+        if (page === 0) return data.songs;
+        const existing = new Set(previous.map((song) => song.providerTrackId || song.id));
+        return [...previous, ...data.songs.filter((song) => !existing.has(song.providerTrackId || song.id))];
+      });
+      setHasMore(data.hasMore);
       setActiveMood(moodKey);
     } catch (err) {
       setErrorMessage(getErrorMessage(err));
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -177,6 +186,15 @@ export const MoodDetailPage: React.FC = () => {
                   />
                 ))}
               </div>
+              {hasMore && (
+                <button
+                  onClick={() => void loadRecommendations(Math.floor(songs.length / 20))}
+                  disabled={isLoadingMore}
+                  className="w-full mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-bold text-slate-300 hover:bg-white/[0.08] hover:text-white disabled:opacity-50 cursor-pointer"
+                >
+                  {isLoadingMore ? 'Loading more music...' : 'Load More'}
+                </button>
+              )}
             </div>
           )}
         </div>

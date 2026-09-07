@@ -49,7 +49,9 @@ public class SongService {
                 s.getReleaseDate(),
                 s.getDescription(),
                 null, // spotifyUri — not applicable for DB songs
-                null  // spotifyTrackId — not applicable for DB songs
+                null, // spotifyTrackId — not applicable for DB songs
+                "MOODIFLO",
+                s.getId() == null ? null : s.getId().toString()
         );
     }
 

@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { MoodSessionRequest, MoodSessionResponse, MoodView, QueryResponse, SongView } from '../types';
+import type { MoodSessionRequest, MoodSessionResponse, MoodView, QueryResponse, MusicPageResponse } from '../types';
 
 export const moodService = {
   async getAllMoods(): Promise<MoodView[]> {
@@ -12,8 +12,10 @@ export const moodService = {
     return res.data;
   },
 
-  async getRecommendations(moodName: string): Promise<{ mood: string; songs: SongView[] }> {
-    const res = await api.get<{ mood: string; songs: SongView[] }>(`/api/moods/${encodeURIComponent(moodName)}/recommendations`);
+  async getRecommendations(moodName: string, page = 0, limit = 20): Promise<MusicPageResponse> {
+    const res = await api.get<MusicPageResponse>(`/api/moods/${encodeURIComponent(moodName)}/recommendations`, {
+      params: { page, limit },
+    });
     return res.data;
   },
 
