@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Music2 } from 'lucide-react';
-<<<<<<< HEAD
-=======
-import { searchService } from '../services/searchService';
->>>>>>> 883cd514840436824f835fb925a0a25d880252f0
 import { spotifyService } from '../services/spotifyService';
 import type { SongView } from '../types';
 import { useDebounce } from '../hooks/useDebounce';
@@ -13,6 +9,8 @@ import { SongCardSkeleton } from '../components/common/SkeletonLoader';
 import { EmptyState } from '../components/common/EmptyState';
 import { ErrorState } from '../components/common/ErrorState';
 import { getErrorMessage } from '../services/api';
+
+const QUICK_TAGS = ['Pop', 'Rock', 'Happy', 'Calm', 'Dance', 'Hindi', 'Acoustic', 'Love'];
 
 export const SearchPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -42,31 +40,7 @@ export const SearchPage: React.FC = () => {
     setErrorMessage(null);
     setHasSearched(true);
     try {
-<<<<<<< HEAD
       setResults(await spotifyService.search(searchTerm, 0, 30));
-=======
-      const [localPage, spotifyTracks] = await Promise.allSettled([
-        searchService.search(searchTerm, 0, 30),
-        spotifyService.search(searchTerm, 0, 20),
-      ]);
-
-      const localResults = localPage.status === 'fulfilled' ? localPage.value.content : [];
-      const spResults = spotifyTracks.status === 'fulfilled' ? spotifyTracks.value : [];
-
-      // Combine local results first, then append external Spotify tracks not already present
-      const combined: SongView[] = [...localResults];
-      const seenTitles = new Set(localResults.map((s) => `${s.title.toLowerCase()}::${s.artist.toLowerCase()}`));
-
-      for (const spTrack of spResults) {
-        const key = `${spTrack.title.toLowerCase()}::${spTrack.artist.toLowerCase()}`;
-        if (!seenTitles.has(key)) {
-          seenTitles.add(key);
-          combined.push(spTrack);
-        }
-      }
-
-      setResults(combined);
->>>>>>> 883cd514840436824f835fb925a0a25d880252f0
     } catch (err) {
       setErrorMessage(getErrorMessage(err));
     } finally {
@@ -77,11 +51,11 @@ export const SearchPage: React.FC = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Search Header */}
-      <div className="mx-auto max-w-2xl space-y-5">
-        <div>
-          <p className="eyebrow">Search</p>
-          <h1 className="page-title mt-2">Find your next song.</h1>
-        </div>
+      <div className="max-w-2xl mx-auto space-y-4 text-center">
+        <h1 className="text-3xl md:text-4xl font-black text-white">Search Music</h1>
+        <p className="text-xs md:text-sm text-slate-400">
+          Find tracks by song title, artist, album, genre, or mood keyword
+        </p>
 
         {/* Input Bar */}
         <div className="relative">
@@ -96,6 +70,18 @@ export const SearchPage: React.FC = () => {
           />
         </div>
 
+        {/* Quick Tag Pills */}
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+          {QUICK_TAGS.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setQuery(tag)}
+              className="px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-300 hover:text-white transition-colors"
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Results Section */}
@@ -104,7 +90,7 @@ export const SearchPage: React.FC = () => {
       )}
 
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {Array(12)
             .fill(0)
             .map((_, i) => (
@@ -122,7 +108,7 @@ export const SearchPage: React.FC = () => {
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span>Found {results.length} results for "{debouncedQuery}"</span>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {results.map((song) => (
               <SongCard
                 key={song.id}

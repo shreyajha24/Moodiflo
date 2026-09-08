@@ -18,6 +18,7 @@ public class SeedDataConfig {
                                   SongRepository sr,
                                   SongMoodRepository smr,
                                   UserRepository ur,
+                                  LyricsRepository lr,
                                   PasswordEncoder pe) {
         return args -> {
             if (mr.count() == 0) {
@@ -32,33 +33,6 @@ public class SeedDataConfig {
                     ms.add(mr.save(m));
                 }
 
-<<<<<<< HEAD
-=======
-                String[] langs = {"English", "Hindi", "Spanish", "Korean", "French"};
-                String[] genres = {"Indie", "Acoustic", "Pop", "Lo-Fi", "Rock"};
-
-                for (int i = 0; i < 20; i++) {
-                    Song s = new Song();
-                    s.setTitle("Moodiflo Demo " + (i + 1));
-                    s.setArtist("Demo Artist " + (i % 5 + 1));
-                    s.setAlbum("Emotional Soundtracks Vol. " + (i % 3 + 1));
-                    s.setLanguage(langs[i % langs.length]);
-                    s.setGenre(genres[i % genres.length]);
-                    s.setDuration(180 + (i * 7));
-                    s.setPopularity(0.4 + (i % 6) * 0.1);
-                    s.setReleaseDate(LocalDate.now().minusMonths(i * 2L));
-                    // SoundHelix provides stable, CORS-enabled demo audio so a fresh
-                    // local install is playable without Spotify credentials.
-                    s.setAudioUrl("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-" + ((i % 16) + 1) + ".mp3");
-                    s.setCoverImageUrl("https://placehold.co/600x600?text=Moodiflo+" + (i + 1));
-                    s.setDescription("Demo audio for local development.");
-                    s = sr.save(s);
-
-                    smr.save(new SongMood(s, ms.get(i % ms.size()), 0.65 + (i % 4) * 0.08));
-                    smr.save(new SongMood(s, ms.get((i + 5) % ms.size()), 0.45));
-
-                }
->>>>>>> 883cd514840436824f835fb925a0a25d880252f0
             }
 
             // Demote and disable any legacy admin account to eliminate backdoor credentials

@@ -16,6 +16,7 @@ import { SearchPage } from './pages/SearchPage';
 import { FavoritesPage } from './pages/FavoritesPage';
 import { PlaylistsPage } from './pages/PlaylistsPage';
 import { PlaylistDetailPage } from './pages/PlaylistDetailPage';
+import { HistoryPage } from './pages/HistoryPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { DiscoverPage } from './pages/DiscoverPage';
@@ -37,12 +38,8 @@ export function App() {
                 <Route path="home" element={<HomePage />} />
                 <Route path="discover" element={<DiscoverPage />} />
                 <Route path="sargam" element={<WorldPage />} />
-<<<<<<< HEAD
                 <Route path="journeys" element={<JourneysPage />} />
-=======
->>>>>>> 883cd514840436824f835fb925a0a25d880252f0
                 <Route path="world" element={<WorldPage />} />
-                <Route path="journeys" element={<JourneysPage />} />
                 <Route path="diary" element={<DiaryPage />} />
                 <Route path="moods" element={<MoodsPage />} />
                 <Route path="moods/:name" element={<MoodDetailPage />} />
@@ -52,7 +49,7 @@ export function App() {
                 <Route path="favorites" element={<FavoritesPage />} />
                 <Route path="playlists" element={<PlaylistsPage />} />
                 <Route path="playlists/:id" element={<PlaylistDetailPage />} />
-                <Route path="history" element={<DiaryPage />} />
+                <Route path="history" element={<HistoryPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>

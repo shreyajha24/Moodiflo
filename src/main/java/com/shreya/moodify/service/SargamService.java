@@ -28,7 +28,6 @@ public class SargamService {
         try {
             String body = client.get().uri(uri -> uri.path("/search")
                             .queryParam("q", place.trim()).queryParam("format", "json")
-<<<<<<< HEAD
                             .queryParam("addressdetails", 1).queryParam("limit", 1).build())
                     .header("User-Agent", "Moodiflo/1.0 (place discovery)")
                     .retrieve().bodyToMono(String.class).block();
@@ -91,25 +90,4 @@ public class SargamService {
         }
         return "";
     }
-=======
-                            .queryParam("limit", 1).build())
-                    .header("User-Agent", "Moodiflo/1.0 (place discovery)")
-                    .retrieve().bodyToMono(String.class).block();
-            JsonNode result = mapper.readTree(body).path(0);
-            if (result.isMissingNode()) throw new IllegalArgumentException("That place could not be resolved.");
-            String displayName = result.path("display_name").asText(place.trim());
-            String country = result.path("address").path("country").asText("");
-            double latitude = result.path("lat").asDouble();
-            double longitude = result.path("lon").asDouble();
-            List<SongView> tracks = spotify.searchTracks(place.trim(), email, 0, 12);
-            return new SargamPlaceView(displayName, latitude, longitude, country, tracks);
-        } catch (IllegalArgumentException ex) {
-            throw ex;
-        } catch (com.fasterxml.jackson.core.JsonProcessingException |
-                 org.springframework.web.reactive.function.client.WebClientResponseException |
-                 IllegalStateException ex) {
-            throw new IllegalArgumentException("Place discovery is temporarily unavailable. Please retry.");
-        }
-    }
->>>>>>> 883cd514840436824f835fb925a0a25d880252f0
 }
