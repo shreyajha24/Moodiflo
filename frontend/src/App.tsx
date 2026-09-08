@@ -37,8 +37,9 @@ export function App() {
                 <Route path="register" element={<RegisterPage />} />
                 <Route path="home" element={<HomePage />} />
                 <Route path="discover" element={<DiscoverPage />} />
-                <Route path="journeys" element={<JourneysPage />} />
+                <Route path="sargam" element={<WorldPage />} />
                 <Route path="world" element={<WorldPage />} />
+                <Route path="journeys" element={<JourneysPage />} />
                 <Route path="diary" element={<DiaryPage />} />
                 <Route path="moods" element={<MoodsPage />} />
                 <Route path="moods/:name" element={<MoodDetailPage />} />
@@ -48,7 +49,7 @@ export function App() {
                 <Route path="favorites" element={<FavoritesPage />} />
                 <Route path="playlists" element={<PlaylistsPage />} />
                 <Route path="playlists/:id" element={<PlaylistDetailPage />} />
-                <Route path="history" element={<HistoryPage />} />
+                <Route path="history" element={<DiaryPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>

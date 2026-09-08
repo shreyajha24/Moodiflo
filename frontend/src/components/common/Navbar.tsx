@@ -47,11 +47,11 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="flex items-center text-lg font-semibold tracking-tight text-white">
-            Mood<span className="font-semibold text-[#D9B56D]">ify</span>
+            <span className="flex items-center text-lg font-semibold tracking-tight text-white font-display">
+              Mood<span className="font-semibold text-[#D9B56D]">iflo</span>
             </span>
-            <span className="text-[10px] text-slate-400 font-medium -mt-1 tracking-wider">
-            Music with a memory
+            <span className="text-[10px] text-[#A7ABC0] font-medium -mt-1 tracking-wider">
+              Music in motion
             </span>
           </div>
         </NavLink>
@@ -63,19 +63,28 @@ export const Navbar: React.FC = () => {
           </NavLink>
           <NavLink to="/discover" className={navItemClass}>
             <span className="flex items-center gap-1.5">
-              <Compass className="w-3.5 h-3.5 text-[#9B8AFB]" />
+              <Compass className="w-3.5 h-3.5 text-[#8D86D9]" />
               Discover
             </span>
           </NavLink>
-          <NavLink to="/journeys" className={navItemClass}>
-            <Route className="mr-1 inline h-3.5 w-3.5 text-[#FF7A73]" /> Journeys
+          <NavLink to="/sargam" className={navItemClass}>
+            <span className="flex items-center gap-1.5">
+              <Globe2 className="w-3.5 h-3.5 text-[#63B7AE]" />
+              Sargam
+            </span>
           </NavLink>
-          <NavLink to="/world" className={navItemClass}>
-            <Globe2 className="mr-1 inline h-3.5 w-3.5 text-[#70D6D0]" /> World
+          <NavLink to="/journeys" className={navItemClass}>
+            <span className="flex items-center gap-1.5">
+              <Route className="w-3.5 h-3.5 text-[#8D86D9]" />
+              Journey
+            </span>
           </NavLink>
           {isAuthenticated && (
             <NavLink to="/diary" className={navItemClass}>
-              <BookHeart className="mr-1 inline h-3.5 w-3.5 text-[#F5C76A]" /> Diary
+              <span className="flex items-center gap-1.5">
+                <BookHeart className="w-3.5 h-3.5 text-[#D9B56D]" />
+                Diary
+              </span>
             </NavLink>
           )}
         </nav>

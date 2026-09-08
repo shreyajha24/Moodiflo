@@ -32,7 +32,7 @@ export const HomePage: React.FC = () => {
       <div>
         <p className="eyebrow">Sargam · music in motion</p>
         <h1 className="page-title">What do you want music to feel like?</h1>
-        <p className="page-copy">Move from sound to emotion, place, and memory. Moodify makes room for the music you have not met yet.</p>
+        <p className="page-copy">Move from sound to emotion, place, and memory. Moodiflo makes room for the music you have not met yet.</p>
       </div>
       <div className="panel p-5">
         <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-[#A7ABC0]">Match this moment</p>

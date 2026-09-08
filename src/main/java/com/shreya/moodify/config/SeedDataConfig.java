@@ -38,7 +38,7 @@ public class SeedDataConfig {
 
                 for (int i = 0; i < 20; i++) {
                     Song s = new Song();
-                    s.setTitle("Moodify Demo " + (i + 1));
+                    s.setTitle("Moodiflo Demo " + (i + 1));
                     s.setArtist("Demo Artist " + (i % 5 + 1));
                     s.setAlbum("Emotional Soundtracks Vol. " + (i % 3 + 1));
                     s.setLanguage(langs[i % langs.length]);
@@ -49,7 +49,7 @@ public class SeedDataConfig {
                     // SoundHelix provides stable, CORS-enabled demo audio so a fresh
                     // local install is playable without Spotify credentials.
                     s.setAudioUrl("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-" + ((i % 16) + 1) + ".mp3");
-                    s.setCoverImageUrl("https://placehold.co/600x600?text=Moodify+" + (i + 1));
+                    s.setCoverImageUrl("https://placehold.co/600x600?text=Moodiflo+" + (i + 1));
                     s.setDescription("Demo audio for local development.");
                     s = sr.save(s);
 
@@ -62,7 +62,7 @@ public class SeedDataConfig {
                         l.setSong(s);
                         l.setLanguage(s.getLanguage());
                         l.setLyricsText("Verse 1:\nWalking through the melodies of " + s.getTitle() + ".\n"
-                                + "Chorus:\nMoodify feels just right, melodies take flight in the silent night.\n"
+                                + "Chorus:\nMoodiflo feels just right, melodies take flight in the silent night.\n"
                                 + "Outro:\nHarmony and solace found.");
                         lr.save(l);
                     }
@@ -76,7 +76,7 @@ public class SeedDataConfig {
                     l.setSong(s);
                     l.setLanguage(s.getLanguage() != null ? s.getLanguage() : "English");
                     l.setLyricsText("Verse 1:\nWalking through the melodies of " + s.getTitle() + ".\n"
-                            + "Chorus:\nMoodify feels just right, melodies take flight in the silent night.\n"
+                            + "Chorus:\nMoodiflo feels just right, melodies take flight in the silent night.\n"
                             + "Outro:\nHarmony and solace found.");
                     lr.save(l);
                 }

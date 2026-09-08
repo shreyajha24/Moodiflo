@@ -18,9 +18,11 @@ interface PlayerContextType {
   isMuted: boolean;
   isLyricsOpen: boolean;
   activeMood: string | null;
+  storyContext: string | null;
   playbackStatus: PlaybackStatus;
   playbackError: string | null;
   setActiveMood: (mood: string | null) => void;
+  setStoryContext: (ctx: string | null) => void;
   playSong: (song: SongView, newQueue?: SongView[], moodContext?: string) => void;
   togglePlay: () => void;
   pause: () => void;
@@ -52,6 +54,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isMuted, setIsMuted] = useState(false);
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
   const [activeMood, setActiveMood] = useState<string | null>(null);
+  const [storyContext, setStoryContext] = useState<string | null>(null);
   const [playbackStatus, setPlaybackStatus] = useState<PlaybackStatus>('idle');
   const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [spotifyConnected, setSpotifyConnected] = useState(false);
@@ -264,8 +267,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     <PlayerContext.Provider value={{
       currentSong, isPlaying, queue, currentIndex,
       progress: duration > 0 ? Math.min(100, currentTime / duration * 100) : 0,
-      currentTime, duration, volume, isMuted, isLyricsOpen, activeMood,
-      playbackStatus, playbackError, setActiveMood, playSong, togglePlay, pause, resume,
+      currentTime, duration, volume, isMuted, isLyricsOpen, activeMood, storyContext,
+      playbackStatus, playbackError, setActiveMood, setStoryContext, playSong, togglePlay, pause, resume,
       next, prev, seek, setVolume, toggleMute, retry, openLyrics, closeLyrics, toggleLyrics,
       spotifyConnected, spotifyError,
     }}>

@@ -14,7 +14,7 @@ public class OpenApiConfig {
     public OpenAPI moodifyOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Moodify API")
+                        .title("Moodiflo API")
                         .version("1.0.0")
                         .description("Mood-based music discovery, playlists, recommendations and lyrics API"))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))

@@ -34,8 +34,10 @@ public class SpotifyService {
 
     private static final String SPOTIFY_ACCOUNTS = "https://accounts.spotify.com";
     private static final String SPOTIFY_API = "https://api.spotify.com/v1";
+    // Moodiflo only reads Spotify context. Playback remains local/provider-owned
+    // until an explicitly approved playback integration is added.
     private static final String SCOPES =
-            "streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state";
+            "user-read-email user-read-private user-read-playback-state user-read-currently-playing user-read-recently-played user-top-read";
 
     // Mood → Spotify search query mapping
     private static final Map<String, String> MOOD_QUERIES = Map.ofEntries(
