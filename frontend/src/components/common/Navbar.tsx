@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import {
   Search,
-  Sparkles,
   LogIn,
   User as UserIcon,
   LogOut,
   Waves,
   Heart,
   ListMusic,
+  Compass,
+  Globe2,
+  BookHeart,
+  Route,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { usePlayer } from '../../hooks/usePlayer';
@@ -52,7 +55,7 @@ export const Navbar: React.FC = () => {
               Mood<span className="mood-wave font-bold">iflo</span>
             </span>
             <span className="text-[10px] text-slate-400 font-medium -mt-1 tracking-wider">
-              Music in your flow
+            Music with a memory
             </span>
           </div>
         </NavLink>
@@ -60,23 +63,23 @@ export const Navbar: React.FC = () => {
         {/* Minimal Navigation Pills - Desktop */}
         <nav className="hidden md:flex items-center gap-1.5 p-1 rounded-full bg-white/[0.04] border border-white/[0.08]">
           <NavLink to={isAuthenticated ? '/home' : '/'} className={navItemClass}>
-            Flow
+            Home
           </NavLink>
-          <NavLink to="/moods" className={navItemClass}>
+          <NavLink to="/discover" className={navItemClass}>
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              Shift Vibe
+              <Compass className="w-3.5 h-3.5 text-[#9B8AFB]" />
+              Discover
             </span>
           </NavLink>
-          <NavLink to="/songs" className={navItemClass}>
-            Vault
+          <NavLink to="/journeys" className={navItemClass}>
+            <Route className="mr-1 inline h-3.5 w-3.5 text-[#FF7A73]" /> Journeys
           </NavLink>
-          <NavLink to="/search" className={navItemClass}>
-            Search
+          <NavLink to="/world" className={navItemClass}>
+            <Globe2 className="mr-1 inline h-3.5 w-3.5 text-[#70D6D0]" /> World
           </NavLink>
           {isAuthenticated && (
-            <NavLink to="/favorites" className={navItemClass}>
-              My Space
+            <NavLink to="/diary" className={navItemClass}>
+              <BookHeart className="mr-1 inline h-3.5 w-3.5 text-[#F5C76A]" /> Diary
             </NavLink>
           )}
         </nav>

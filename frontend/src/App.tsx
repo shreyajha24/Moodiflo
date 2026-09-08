@@ -19,6 +19,10 @@ import { PlaylistDetailPage } from './pages/PlaylistDetailPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { DiscoverPage } from './pages/DiscoverPage';
+import { JourneysPage } from './pages/JourneysPage';
+import { WorldPage } from './pages/WorldPage';
+import { DiaryPage } from './pages/DiaryPage';
 
 export function App() {
   return (
@@ -32,6 +36,10 @@ export function App() {
                 <Route path="login" element={<LoginPage />} />
                 <Route path="register" element={<RegisterPage />} />
                 <Route path="home" element={<HomePage />} />
+                <Route path="discover" element={<DiscoverPage />} />
+                <Route path="journeys" element={<JourneysPage />} />
+                <Route path="world" element={<WorldPage />} />
+                <Route path="diary" element={<DiaryPage />} />
                 <Route path="moods" element={<MoodsPage />} />
                 <Route path="moods/:name" element={<MoodDetailPage />} />
                 <Route path="songs" element={<SongsPage />} />

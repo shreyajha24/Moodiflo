@@ -19,6 +19,9 @@ export const PlayerBar: React.FC = () => {
     seek,
     setVolume,
     toggleMute,
+    retry,
+    playbackStatus,
+    playbackError,
     toggleLyrics,
     isLyricsOpen,
     spotifyError,
@@ -42,9 +45,14 @@ export const PlayerBar: React.FC = () => {
           boxShadow: `0 20px 40px -15px ${currentTheme.primaryColor}25, 0 0 1px 1px rgba(255,255,255,0.08)`,
         }}
       >
-        {spotifyError && (
-          <div className="mb-2 rounded-xl bg-rose-500/10 border border-rose-500/20 px-3 py-2 text-[11px] text-rose-200">
-            {spotifyError}
+        {(playbackError || spotifyError) && (
+          <div className="mb-2 flex items-center justify-between gap-3 rounded-xl bg-rose-500/10 border border-rose-500/20 px-3 py-2 text-[11px] text-rose-200">
+            <span>{playbackError || spotifyError}</span>
+            {playbackStatus === 'error' && (
+              <button onClick={retry} className="shrink-0 rounded-full bg-rose-300/15 px-2.5 py-1 font-bold text-rose-100 hover:bg-rose-300/25">
+                Retry
+              </button>
+            )}
           </div>
         )}
         {/* Contextual Mood Vibe Bar */}
@@ -113,6 +121,7 @@ export const PlayerBar: React.FC = () => {
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm font-bold text-white truncate">{currentSong.title}</p>
               <p className="text-[10px] sm:text-xs text-slate-400 truncate">{currentSong.artist}</p>
+              <p className="text-[10px] text-slate-500">{playbackStatus === 'loading' ? 'Loading...' : playbackStatus === 'playing' ? 'Playing' : playbackStatus === 'paused' ? 'Paused' : playbackStatus === 'error' ? 'Unable to play' : ''}</p>
             </div>
           </div>
 
@@ -132,7 +141,7 @@ export const PlayerBar: React.FC = () => {
                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-amber-400 to-rose-500 hover:scale-105 active:scale-95 text-slate-950 flex items-center justify-center shadow-lg shadow-amber-400/25 transition-all cursor-pointer"
                 title={isPlaying ? 'Pause' : 'Play'}
               >
-                {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
+                {playbackStatus === 'loading' ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950/30 border-t-slate-950" /> : isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
               </button>
 
               <button

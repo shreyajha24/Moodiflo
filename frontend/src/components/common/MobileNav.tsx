@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Waves, Sparkles, Search, Music2, User } from 'lucide-react';
+import { Waves, Compass, Route, BookHeart, Library } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const MobileNav: React.FC = () => {
@@ -15,27 +15,27 @@ export const MobileNav: React.FC = () => {
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#0d0e14]/95 backdrop-blur-2xl border-t border-white/10 flex items-center justify-around px-2 py-1 shadow-2xl">
       <NavLink to={isAuthenticated ? '/home' : '/'} className={navItemClass}>
         <Waves className="w-5 h-5" />
-        Flow
+        Home
       </NavLink>
 
-      <NavLink to="/moods" className={navItemClass}>
-        <Sparkles className="w-5 h-5" />
-        Shift
+      <NavLink to="/discover" className={navItemClass}>
+        <Compass className="w-5 h-5" />
+        Discover
+      </NavLink>
+
+      <NavLink to="/journeys" className={navItemClass}>
+        <Route className="w-5 h-5" />
+        Journeys
+      </NavLink>
+
+      <NavLink to="/diary" className={navItemClass}>
+        <BookHeart className="w-5 h-5" />
+        Diary
       </NavLink>
 
       <NavLink to="/songs" className={navItemClass}>
-        <Music2 className="w-5 h-5" />
-        Vault
-      </NavLink>
-
-      <NavLink to="/search" className={navItemClass}>
-        <Search className="w-5 h-5" />
-        Search
-      </NavLink>
-
-      <NavLink to={isAuthenticated ? '/profile' : '/login'} className={navItemClass}>
-        <User className="w-5 h-5" />
-        {isAuthenticated ? 'My Space' : 'Sign In'}
+        <Library className="w-5 h-5" />
+        Library
       </NavLink>
     </nav>
   );

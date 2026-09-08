@@ -3,9 +3,9 @@
 :root {
   --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --bg-space: #0b0c10;
-  --bg-surface: #14161f;
-  --bg-surface-elevated: #1a1e2b;
+  --bg-space: #0B0D17;
+  --bg-surface: #121525;
+  --bg-surface-elevated: #191D31;
 }
 
 body {
@@ -99,4 +99,26 @@ h1, h2, h3, .font-display {
   background: linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin-top: 0.65rem;
+  color: #F5F3FF;
+  font-size: clamp(2.3rem, 6vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: -0.045em;
+}
+
+.page-copy {
+  max-width: 42rem;
+  margin-top: 1rem;
+  color: #A9ACC1;
+  line-height: 1.7;
 }

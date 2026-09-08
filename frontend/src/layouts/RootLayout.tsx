@@ -16,7 +16,7 @@ export const RootLayout: React.FC = () => {
   const theme = getMoodTheme(activeMood || 'HAPPY');
 
   return (
-    <div className="min-h-screen w-full bg-[#0b0c10] text-slate-100 antialiased relative selection:bg-amber-400/30 selection:text-amber-200">
+    <div className="min-h-screen w-full bg-[#0B0D17] text-slate-100 antialiased relative selection:bg-[#9B8AFB]/30 selection:text-white">
       {/* Atmospheric Ambient Aura that gently reacts to current mood */}
       <div
         className="ambient-aura"

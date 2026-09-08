@@ -46,7 +46,9 @@ public class SeedDataConfig {
                     s.setDuration(180 + (i * 7));
                     s.setPopularity(0.4 + (i % 6) * 0.1);
                     s.setReleaseDate(LocalDate.now().minusMonths(i * 2L));
-                    s.setAudioUrl("https://example.com/demo-audio/" + (i + 1) + ".mp3");
+                    // SoundHelix provides stable, CORS-enabled demo audio so a fresh
+                    // local install is playable without Spotify credentials.
+                    s.setAudioUrl("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-" + ((i % 16) + 1) + ".mp3");
                     s.setCoverImageUrl("https://placehold.co/600x600?text=Moodify+" + (i + 1));
                     s.setDescription("Demo audio for local development.");
                     s = sr.save(s);
@@ -79,6 +81,15 @@ public class SeedDataConfig {
                     lr.save(l);
                 }
             }
+
+            // Repair installations created by the old demo seed without changing
+            // user-owned songs or any Spotify/provider metadata.
+            sr.findAll().forEach(s -> {
+                if (s.getAudioUrl() != null && s.getAudioUrl().contains("example.com")) {
+                    s.setAudioUrl("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-" + (((s.getId() == null ? 1 : s.getId()) - 1) % 16 + 1) + ".mp3");
+                    sr.save(s);
+                }
+            });
 
             // Demote and disable any legacy admin account to eliminate backdoor credentials
             ur.findByEmailIgnoreCase("admin@moodify.local").ifPresent(u -> {
