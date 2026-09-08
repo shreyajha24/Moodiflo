@@ -77,35 +77,35 @@ export const SongCard: React.FC<SongCardProps> = ({
   };
 
   return (
-    <div
+    <article
       onClick={() => navigate(`/songs/${song.id}`)}
-      className="group relative glass-panel glass-panel-hover rounded-2xl p-4 flex flex-col justify-between cursor-pointer overflow-hidden transition-all duration-300 border border-white/5 hover:border-violet-500/30"
+      className="panel-quiet panel-hover group relative flex cursor-pointer flex-col justify-between overflow-hidden p-3"
     >
       {/* Cover Image Container */}
-      <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-3 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-violet-950/50 flex items-center justify-center shadow-lg">
+      <div className="artwork relative mb-3 aspect-square w-full rounded-[0.9rem]">
         {song.coverImageUrl ? (
           <img
             src={song.coverImageUrl}
             alt={song.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             onError={(e) => {
               // fallback if URL broken
               (e.target as HTMLImageElement).style.display = 'none';
             }}
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-slate-500 group-hover:text-violet-400 transition-colors">
+          <div className="artwork-placeholder">
             <Music2 className="w-12 h-12 stroke-1" />
           </div>
         )}
 
         {/* Hover overlay & Play button */}
-        <div className={`absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center transition-opacity duration-300 ${
+        <div className={`absolute inset-0 flex items-center justify-center bg-[#0B1020]/60 transition-opacity duration-300 ${
           isThisSongPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
         }`}>
           <button
             onClick={handlePlayClick}
-            className="w-12 h-12 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-500 text-white flex items-center justify-center shadow-xl shadow-violet-600/40 hover:scale-110 active:scale-95 transition-transform"
+            className="grid h-11 w-11 place-items-center rounded-full bg-[#D9B56D] text-[#0B1020] transition-transform hover:scale-105 active:scale-95"
             aria-label={isThisSongPlaying ? 'Pause' : 'Play'}
           >
             {isThisSongPlaying ? (
@@ -118,7 +118,7 @@ export const SongCard: React.FC<SongCardProps> = ({
 
         {/* Genre Pill */}
         {song.genre && (
-          <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-black/60 backdrop-blur-md text-violet-300 border border-violet-500/20">
+          <span className="absolute left-2.5 top-2.5 border border-white/15 bg-[#0B1020]/75 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#A7ABC0]">
             {song.genre}
           </span>
         )}
@@ -126,16 +126,16 @@ export const SongCard: React.FC<SongCardProps> = ({
 
       {/* Info Section */}
       <div className="flex flex-col gap-1">
-        <h4 className="font-semibold text-white text-sm truncate group-hover:text-violet-300 transition-colors">
+        <h4 className="truncate text-sm font-semibold text-[#EDEAF7] transition-colors group-hover:text-white">
           {song.title}
         </h4>
-        <p className="text-xs text-slate-400 truncate">
+        <p className="truncate text-xs text-[#A7ABC0]">
           {song.artist}
         </p>
       </div>
 
       {/* Footer Actions */}
-      <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/5 text-xs text-slate-500">
+      <div className="mt-3 flex items-center justify-between border-t border-white/[0.07] pt-2 text-xs text-[#737B95]">
         <span>{formatDuration(song.duration)}</span>
         <div className="flex items-center gap-1.5">
           {onAddToPlaylist && !isSpotifyTrack && (
@@ -144,7 +144,7 @@ export const SongCard: React.FC<SongCardProps> = ({
                 e.stopPropagation();
                 onAddToPlaylist(song);
               }}
-              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+              className="rounded p-1.5 text-[#A7ABC0] hover:bg-white/5 hover:text-white"
               title="Add to Playlist"
             >
               <Plus className="w-4 h-4" />
@@ -157,16 +157,16 @@ export const SongCard: React.FC<SongCardProps> = ({
               disabled={favLoading}
               className={`p-1.5 rounded-lg transition-colors ${
                 favorite
-                  ? 'text-rose-500 hover:text-rose-400'
-                  : 'text-slate-400 hover:text-rose-400 hover:bg-white/5'
+                  ? 'text-[#D9B56D]'
+                  : 'text-[#A7ABC0] hover:bg-white/5 hover:text-[#D9B56D]'
               }`}
               title={favorite ? 'Remove Favorite' : 'Add to Favorites'}
             >
               <Heart className={`w-4 h-4 ${favorite ? 'fill-current' : ''}`} />
             </button>
           )}
-        </div>
       </div>
     </div>
+    </article>
   );
 };

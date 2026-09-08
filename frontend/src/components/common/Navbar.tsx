@@ -14,17 +14,13 @@ import {
   Route,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { usePlayer } from '../../hooks/usePlayer';
-import { getMoodTheme } from '../../utils/moodTheme';
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
-  const { activeMood } = usePlayer();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const currentTheme = getMoodTheme(activeMood || 'HAPPY');
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,10 +30,10 @@ export const Navbar: React.FC = () => {
   };
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
-    `px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-all ${
+    `px-3 py-2 text-xs font-semibold tracking-wide transition-colors ${
       isActive
-        ? 'bg-white/15 text-white shadow-sm border border-white/15'
-        : 'text-slate-400 hover:text-white hover:bg-white/5'
+        ? 'border-b border-[#D9B56D] text-white'
+        : 'text-[#A7ABC0] hover:text-white'
     }`;
 
   return (
@@ -45,14 +41,14 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Brand Wordmark */}
         <NavLink to="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-violet-600 p-[1.5px] shadow-lg shadow-amber-500/10 group-hover:scale-105 transition-transform">
-            <div className="w-full h-full bg-[#0d0e14] rounded-[14px] flex items-center justify-center text-white">
-              <Waves className="w-4 h-4 text-amber-300 animate-pulse" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#D9B56D]/60 bg-[#D9B56D]/10 text-[#D9B56D] transition-transform group-hover:scale-105">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#8D86D9]/40">
+              <Waves className="w-4 h-4" />
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-black tracking-tight text-white flex items-center">
-              Mood<span className="mood-wave font-bold">iflo</span>
+            <span className="flex items-center text-lg font-semibold tracking-tight text-white">
+            Mood<span className="font-semibold text-[#D9B56D]">ify</span>
             </span>
             <span className="text-[10px] text-slate-400 font-medium -mt-1 tracking-wider">
             Music with a memory
@@ -61,7 +57,7 @@ export const Navbar: React.FC = () => {
         </NavLink>
 
         {/* Minimal Navigation Pills - Desktop */}
-        <nav className="hidden md:flex items-center gap-1.5 p-1 rounded-full bg-white/[0.04] border border-white/[0.08]">
+        <nav className="hidden items-center gap-1 border-x border-white/10 px-3 md:flex">
           <NavLink to={isAuthenticated ? '/home' : '/'} className={navItemClass}>
             Home
           </NavLink>
@@ -86,16 +82,6 @@ export const Navbar: React.FC = () => {
 
         {/* Right Section: Active Vibe Badge & Profile */}
         <div className="flex items-center gap-3">
-          {/* Active Mood Pill */}
-          <button
-            onClick={() => navigate('/moods')}
-            className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${currentTheme.badgeClasses} hover:scale-105`}
-            title="Click to shift your mood vibe"
-          >
-            <span className="text-sm">{currentTheme.emoji}</span>
-            <span className="capitalize">{activeMood ? `${currentTheme.displayName} Wave` : 'Find Your Vibe'}</span>
-          </button>
-
           {/* Search Trigger (Mobile / Quick) */}
           <form onSubmit={handleSearchSubmit} className="relative hidden lg:block w-48 focus-within:w-64 transition-all">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -115,7 +101,7 @@ export const Navbar: React.FC = () => {
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="flex items-center gap-2 p-1.5 pr-3 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs text-white transition-all cursor-pointer"
               >
-                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center text-[10px] font-bold text-slate-900">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[#D9B56D]/60 bg-[#D9B56D]/15 text-[10px] font-bold text-[#D9B56D]">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <span className="max-w-[80px] truncate font-medium">{user.name.split(' ')[0]}</span>
@@ -169,7 +155,7 @@ export const Navbar: React.FC = () => {
                       setIsMenuOpen(false);
                       navigate('/login');
                     }}
-                    className="w-full px-4 py-2 text-left text-xs text-rose-400 hover:bg-rose-500/10 flex items-center gap-2"
+                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-xs text-[#D97870] hover:bg-[#D97870]/10"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     Sign Out
@@ -180,7 +166,7 @@ export const Navbar: React.FC = () => {
           ) : (
             <button
               onClick={() => navigate('/login')}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-md shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              className="button-primary px-4 text-xs"
             >
               <LogIn className="w-3.5 h-3.5" />
               Sign In

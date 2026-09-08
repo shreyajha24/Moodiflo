@@ -1,198 +1,56 @@
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Languages, Music2 } from 'lucide-react';
+import { BookHeart, CircleHelp, Languages, Music2, Pause, Play, Plus, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
 import { usePlayer } from '../../hooks/usePlayer';
-import { getMoodTheme } from '../../utils/moodTheme';
 
 export const PlayerBar: React.FC = () => {
   const {
-    currentSong,
-    isPlaying,
-    currentTime,
-    duration,
-    progress,
-    volume,
-    isMuted,
-    activeMood,
-    togglePlay,
-    next,
-    prev,
-    seek,
-    setVolume,
-    toggleMute,
-    retry,
-    playbackStatus,
-    playbackError,
-    toggleLyrics,
-    isLyricsOpen,
-    spotifyError,
+    currentSong, isPlaying, currentTime, duration, progress, volume, isMuted,
+    togglePlay, next, prev, seek, setVolume, toggleMute, retry, playbackStatus, playbackError,
+    toggleLyrics, isLyricsOpen,
   } = usePlayer();
 
   if (!currentSong) return null;
-
-  const currentTheme = getMoodTheme(activeMood || currentSong.genre || 'HAPPY');
-
-  const formatTime = (secs: number) => {
-    const m = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
+  const time = (seconds: number) => `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
 
   return (
-    <div className="fixed bottom-14 md:bottom-5 left-2 right-2 sm:left-6 sm:right-6 md:left-1/2 md:-translate-x-1/2 md:max-w-4xl z-40 transition-all duration-300">
-      <div
-        className="rounded-2xl sm:rounded-3xl bg-[#131520]/95 backdrop-blur-2xl border border-white/10 p-2.5 sm:px-4 sm:py-3 shadow-2xl transition-all"
-        style={{
-          boxShadow: `0 20px 40px -15px ${currentTheme.primaryColor}25, 0 0 1px 1px rgba(255,255,255,0.08)`,
-        }}
-      >
-        {(playbackError || spotifyError) && (
-          <div className="mb-2 flex items-center justify-between gap-3 rounded-xl bg-rose-500/10 border border-rose-500/20 px-3 py-2 text-[11px] text-rose-200">
-            <span>{playbackError || spotifyError}</span>
-            {playbackStatus === 'error' && (
-              <button onClick={retry} className="shrink-0 rounded-full bg-rose-300/15 px-2.5 py-1 font-bold text-rose-100 hover:bg-rose-300/25">
-                Retry
+    <aside className="fixed inset-x-3 bottom-[4.5rem] z-40 mx-auto max-w-5xl md:inset-x-6 md:bottom-5">
+      <div className="border border-white/10 bg-[#11182B]/96 p-3 shadow-[0_20px_70px_rgba(0,0,0,0.38)] backdrop-blur-xl md:p-4" style={{ borderRadius: '1.15rem' }}>
+        {playbackError && <div className="mb-3 flex items-center justify-between gap-3 border-b border-[#D97870]/25 pb-2 text-xs text-[#e8aaa3]"><span>{playbackError}</span><button onClick={retry} className="button-quiet min-h-8 px-3 text-xs">Retry</button></div>}
+        <div className="flex items-center gap-3">
+          <div className="artwork h-11 w-11 shrink-0 rounded-lg md:h-14 md:w-14">
+            {currentSong.coverImageUrl ? <img src={currentSong.coverImageUrl} alt={currentSong.title} /> : <div className="artwork-placeholder"><Music2 className="h-5 w-5" /></div>}
+          </div>
+          <div className="min-w-0 w-[38%] md:w-1/4">
+            <p className="truncate text-sm font-semibold text-[#EDEAF7]">{currentSong.title}</p>
+            <p className="truncate text-xs text-[#A7ABC0]">{currentSong.artist}</p>
+            <p className="mt-1 text-[10px] uppercase tracking-wider text-[#737B95]">{playbackStatus === 'loading' ? 'Loading' : playbackStatus === 'error' ? 'Unable to play' : isPlaying ? 'Playing' : 'Paused'}</p>
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col items-center gap-1">
+            <div className="flex items-center gap-3">
+              <button aria-label="Previous track" onClick={prev} className="text-[#A7ABC0] hover:text-white"><SkipBack className="h-4 w-4" /></button>
+              <button aria-label={isPlaying ? 'Pause track' : 'Play track'} onClick={togglePlay} className="grid h-10 w-10 place-items-center rounded-full bg-[#D9B56D] text-[#0B1020]">
+                {playbackStatus === 'loading' ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0B1020]/30 border-t-[#0B1020]" /> : isPlaying ? <Pause className="h-4 w-4 fill-current" /> : <Play className="ml-0.5 h-4 w-4 fill-current" />}
               </button>
-            )}
+              <button aria-label="Next track" onClick={next} className="text-[#A7ABC0] hover:text-white"><SkipForward className="h-4 w-4" /></button>
+            </div>
+            <div className="flex w-full items-center gap-2 text-[10px] text-[#737B95]">
+              <span>{time(currentTime)}</span>
+              <input aria-label="Track progress" type="range" min="0" max="100" value={progress} onChange={(event) => seek(Number(event.target.value))} className="h-1 min-w-0 flex-1 accent-[#D9B56D]" />
+              <span>{time(duration)}</span>
+            </div>
           </div>
-        )}
-        {/* Contextual Mood Vibe Bar */}
-        <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-white/[0.06] text-[11px]">
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1 font-semibold text-slate-300">
-              <span className="text-xs">{currentTheme.emoji}</span>
-              <span className="text-slate-400">Flowing in:</span>
-              <span className="text-white capitalize">{currentTheme.displayName}</span>
-            </span>
-            {isPlaying && (
-              <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-amber-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                Active Flow
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 text-slate-400 text-[10px]">
-            <span className="hidden sm:inline">Music that moves with you</span>
-            <button
-              onClick={toggleLyrics}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
-                isLyricsOpen
-                  ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
-                  : 'bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white'
-              }`}
-            >
-              <Languages className="w-3.5 h-3.5" />
-              <span>{isLyricsOpen ? 'Close Lyrics' : 'Lyrics & Translate'}</span>
-            </button>
+          <div className="hidden items-center gap-2 md:flex">
+            <button aria-label="Toggle mute" onClick={toggleMute} className="text-[#A7ABC0] hover:text-white">{isMuted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}</button>
+            <input aria-label="Volume" type="range" min="0" max="1" step="0.02" value={isMuted ? 0 : volume} onChange={(event) => setVolume(Number(event.target.value))} className="w-20 accent-[#D9B56D]" />
           </div>
         </div>
-
-        {/* Main Controls Row */}
-        <div className="flex items-center justify-between gap-3">
-          {/* Track Info */}
-          <div className="flex items-center gap-3 w-1/3 sm:w-1/4 min-w-0">
-            <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-slate-800 overflow-hidden shrink-0 border border-white/10">
-              {currentSong.coverImageUrl ? (
-                <img
-                  src={currentSong.coverImageUrl}
-                  alt={currentSong.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-amber-400">
-                  <Music2 className="w-5 h-5" />
-                </div>
-              )}
-
-              {/* Dynamic waveform badge */}
-              {isPlaying && (
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center gap-0.5">
-                  <span className="w-1 bg-amber-400 rounded-full wave-bar-1" />
-                  <span className="w-1 bg-rose-400 rounded-full wave-bar-2" />
-                  <span className="w-1 bg-cyan-400 rounded-full wave-bar-3" />
-                  <span className="w-1 bg-amber-300 rounded-full wave-bar-4" />
-                </div>
-              )}
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <p className="text-xs sm:text-sm font-bold text-white truncate">{currentSong.title}</p>
-              <p className="text-[10px] sm:text-xs text-slate-400 truncate">{currentSong.artist}</p>
-              <p className="text-[10px] text-slate-500">{playbackStatus === 'loading' ? 'Loading...' : playbackStatus === 'playing' ? 'Playing' : playbackStatus === 'paused' ? 'Paused' : playbackStatus === 'error' ? 'Unable to play' : ''}</p>
-            </div>
-          </div>
-
-          {/* Transport & Scrubber */}
-          <div className="flex-1 max-w-md flex flex-col items-center gap-1">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <button
-                onClick={prev}
-                className="p-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                title="Previous track"
-              >
-                <SkipBack className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={togglePlay}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-amber-400 to-rose-500 hover:scale-105 active:scale-95 text-slate-950 flex items-center justify-center shadow-lg shadow-amber-400/25 transition-all cursor-pointer"
-                title={isPlaying ? 'Pause' : 'Play'}
-              >
-                {playbackStatus === 'loading' ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950/30 border-t-slate-950" /> : isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
-              </button>
-
-              <button
-                onClick={next}
-                className="p-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                title="Next track"
-              >
-                <SkipForward className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Scrubber Bar */}
-            <div className="w-full flex items-center gap-2 text-[10px] text-slate-400 font-mono">
-              <span className="w-7 text-right shrink-0">{formatTime(currentTime)}</span>
-              <div
-                className="flex-1 h-1.5 bg-white/10 hover:h-2 rounded-full overflow-hidden cursor-pointer relative transition-all"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const pct = ((e.clientX - rect.left) / rect.width) * 100;
-                  seek(pct);
-                }}
-              >
-                <div
-                  className="h-full bg-gradient-to-r from-amber-400 to-rose-400 rounded-full transition-all duration-100"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <span className="w-7 text-left shrink-0">{formatTime(duration)}</span>
-            </div>
-          </div>
-
-          {/* Volume Control */}
-          <div className="hidden sm:flex items-center justify-end gap-2 w-1/4">
-            <button
-              onClick={toggleMute}
-              className="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
-            >
-              {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.02"
-              value={isMuted ? 0 : volume}
-              onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="w-16 h-1 bg-white/10 accent-amber-400 rounded-full cursor-pointer"
-            />
-          </div>
+        <div className="mt-3 flex items-center justify-end gap-3 border-t border-white/[0.06] pt-2 text-[10px] text-[#A7ABC0]">
+          <button onClick={toggleLyrics} className="inline-flex items-center gap-1 hover:text-white"><Languages className="h-3.5 w-3.5" /> {isLyricsOpen ? 'Close lyrics' : 'Lyrics'}</button>
+          <button className="inline-flex items-center gap-1 hover:text-white"><CircleHelp className="h-3.5 w-3.5" /> Why this?</button>
+          <button className="hidden items-center gap-1 hover:text-white sm:inline-flex"><BookHeart className="h-3.5 w-3.5" /> Save memory</button>
+          <button className="hidden items-center gap-1 hover:text-white sm:inline-flex"><Plus className="h-3.5 w-3.5" /> Add to journey</button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };
