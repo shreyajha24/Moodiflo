@@ -1,13 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import { Play, SlidersHorizontal } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { songService } from '../services/songService';
-import { usePlayer } from '../hooks/usePlayer';
 import type { SongView } from '../types';
+import { usePlayer } from '../hooks/usePlayer';
 
-const stages = [['Begin', 'Unwind', 'Make space'], ['Drift', 'Warm', 'Let the edges soften'], ['Discover', 'Open', 'Meet an unfamiliar voice'], ['Rise', 'Lift', 'Let the rhythm carry you'], ['Arrive', 'Peaceful', 'Keep what stays with you']];
+const stages = ['Begin', 'Drift', 'Discover', 'Rise', 'Arrive'];
+
 export const JourneysPage: React.FC = () => {
   const [songs, setSongs] = useState<SongView[]>([]);
   const { playSong } = usePlayer();
-  useEffect(() => { songService.getAllSongs(0, 12).then((page) => setSongs(page.content)).catch(() => {}); }, []);
-  return <div className="space-y-10"><header><p className="eyebrow text-[#D97870]">Music in motion</p><h1 className="page-title">Don't listen to<br className="hidden sm:block" /> a playlist. Go somewhere.</h1><p className="page-copy">A Journey is a sequence with intention: each song changes the light before the next one begins.</p></header><section className="panel overflow-hidden"><div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.08] p-6 sm:p-8"><div><p className="eyebrow text-[#D97870]">Tonight's route</p><h2 className="mt-2 text-3xl font-semibold text-white">Late night → sunrise</h2></div><button className="button-quiet"><SlidersHorizontal className="h-4 w-4" /> Shape journey</button></div><div className="grid gap-4 border-b border-white/[0.08] p-6 sm:grid-cols-3 sm:p-8"><label className="text-xs text-[#A7ABC0]">Length<input aria-label="Journey length" type="range" min="3" max="10" defaultValue="5" className="mt-3 w-full accent-[#D97870]" /></label><label className="text-xs text-[#A7ABC0]">Energy<input aria-label="Journey energy" type="range" min="0" max="100" defaultValue="48" className="mt-3 w-full accent-[#D97870]" /></label><label className="text-xs text-[#A7ABC0]">Novelty<input aria-label="Journey novelty" type="range" min="0" max="100" defaultValue="62" className="mt-3 w-full accent-[#8D86D9]" /></label></div><div className="journey-path">{stages.map(([name, mood, explanation], index) => <article key={name} className="journey-stage"><div className="journey-stage-dot" /><div className="journey-stage-art artwork">{songs[index]?.coverImageUrl ? <img src={songs[index].coverImageUrl} alt="" /> : null}</div><div className="journey-stage-copy"><p className="text-[10px] uppercase tracking-widest text-[#A7ABC0]">{name}</p><h3 className="mt-1 text-base font-semibold text-white">{mood}</h3><p className="mt-1 text-xs leading-5 text-[#737B95]">{explanation}</p></div></article>)}</div><div className="flex flex-wrap items-center justify-between gap-4 p-6 sm:p-8"><p className="text-sm text-[#A7ABC0]">The path will evolve as you listen.</p><button onClick={() => songs.length && playSong(songs[0], songs)} className="button-primary"><Play className="h-4 w-4 fill-current" /> Begin journey</button></div></section></div>;
+
+  useEffect(() => {
+    songService.getAllSongs(0, 5).then((page) => setSongs(page.content)).catch(() => setSongs([]));
+  }, []);
+
+  return (
+    <div className="space-y-16 pb-12">
+      <header className="max-w-2xl space-y-4">
+        <p className="eyebrow text-[#D97870]">Journey</p>
+        <h1 className="page-title">Let the listening unfold.</h1>
+        <p className="page-copy">A simple path from one feeling to the next.</p>
+      </header>
+      <section className="panel p-5 sm:p-8">
+        <div className="journey-path">
+          {stages.map((stage, index) => (
+            <article key={stage} className="journey-stage">
+              <div className="journey-stage-dot" />
+              <div className="journey-stage-art artwork">
+                {songs[index]?.coverImageUrl && <img src={songs[index].coverImageUrl} alt="" />}
+              </div>
+              <div className="journey-stage-copy">
+                <p className="text-[10px] uppercase tracking-widest text-[#A7ABC0]">{stage}</p>
+                {songs[index] && <p className="mt-1 truncate text-sm font-semibold text-white">{songs[index].title}</p>}
+              </div>
+            </article>
+          ))}
+        </div>
+        <button onClick={() => songs.length && playSong(songs[0], songs)} className="button-primary mt-8">
+          <Play className="h-4 w-4 fill-current" /> Begin journey
+        </button>
+      </section>
+    </div>
+  );
 };

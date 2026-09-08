@@ -41,6 +41,14 @@ export interface SongView {
   providerTrackId?: string | null;
 }
 
+export interface SargamPlaceView {
+  displayName: string;
+  latitude: number;
+  longitude: number;
+  country?: string | null;
+  tracks: SongView[];
+}
+
 export interface MoodView {
   id: number;
   name: string;

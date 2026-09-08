@@ -18,7 +18,6 @@ public class SeedDataConfig {
                                   SongRepository sr,
                                   SongMoodRepository smr,
                                   UserRepository ur,
-                                  LyricsRepository lr,
                                   PasswordEncoder pe) {
         return args -> {
             if (mr.count() == 0) {
@@ -56,29 +55,6 @@ public class SeedDataConfig {
                     smr.save(new SongMood(s, ms.get(i % ms.size()), 0.65 + (i % 4) * 0.08));
                     smr.save(new SongMood(s, ms.get((i + 5) % ms.size()), 0.45));
 
-                    // Seed sample lyrics for first 10 songs
-                    if (i < 10) {
-                        Lyrics l = new Lyrics();
-                        l.setSong(s);
-                        l.setLanguage(s.getLanguage());
-                        l.setLyricsText("Verse 1:\nWalking through the melodies of " + s.getTitle() + ".\n"
-                                + "Chorus:\nMoodiflo feels just right, melodies take flight in the silent night.\n"
-                                + "Outro:\nHarmony and solace found.");
-                        lr.save(l);
-                    }
-                }
-            } else if (lr.count() == 0 && sr.count() > 0) {
-                // If songs exist but lyrics were missing from earlier run, seed lyrics
-                List<Song> existingSongs = sr.findAll();
-                for (int i = 0; i < Math.min(10, existingSongs.size()); i++) {
-                    Song s = existingSongs.get(i);
-                    Lyrics l = new Lyrics();
-                    l.setSong(s);
-                    l.setLanguage(s.getLanguage() != null ? s.getLanguage() : "English");
-                    l.setLyricsText("Verse 1:\nWalking through the melodies of " + s.getTitle() + ".\n"
-                            + "Chorus:\nMoodiflo feels just right, melodies take flight in the silent night.\n"
-                            + "Outro:\nHarmony and solace found.");
-                    lr.save(l);
                 }
             }
 
