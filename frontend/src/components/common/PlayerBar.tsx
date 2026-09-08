@@ -43,7 +43,7 @@ export const PlayerBar: React.FC = () => {
       {/* ── DESKTOP DOCKED BOTTOM BAR (md and up) ── */}
       <aside className="fixed bottom-0 left-0 right-0 z-30 hidden h-20 border-t border-white/10 bg-[#11182B]/95 px-6 shadow-2xl backdrop-blur-xl md:flex md:items-center md:justify-between">
         {/* Left: Track Details & Story Badge */}
-        <div className="flex w-1/4 min-w-[200px] items-center gap-3">
+        <div className="flex min-w-0 basis-1/4 items-center gap-3">
           <div className="artwork h-12 w-12 shrink-0 rounded-lg shadow-md">
             {currentSong.coverImageUrl ? (
               <img src={currentSong.coverImageUrl} alt={currentSong.title} />
@@ -118,7 +118,7 @@ export const PlayerBar: React.FC = () => {
         </div>
 
         {/* Right: Actions, Lyrics, Volume */}
-        <div className="flex w-1/4 min-w-[200px] items-center justify-end gap-3 text-xs text-[#A7ABC0]">
+        <div className="flex min-w-0 basis-1/4 items-center justify-end gap-3 text-xs text-[#A7ABC0]">
           <button
             onClick={toggleLyrics}
             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 transition-colors ${
@@ -185,7 +185,7 @@ export const PlayerBar: React.FC = () => {
 
       {/* ── MOBILE COMPACT MINI-PLAYER (Docked above bottom nav) ── */}
       <div
-        className="fixed bottom-[3.5rem] left-0 right-0 z-30 flex h-14 items-center justify-between border-t border-white/10 bg-[#11182B]/98 px-3 shadow-xl backdrop-blur-xl md:hidden"
+        className="fixed bottom-16 left-0 right-0 z-30 flex h-16 items-center justify-between border-t border-white/10 bg-[#11182B]/98 px-3 shadow-xl backdrop-blur-xl md:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div

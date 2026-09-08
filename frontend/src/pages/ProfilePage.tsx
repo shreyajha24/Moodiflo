@@ -125,11 +125,11 @@ export const ProfilePage: React.FC = () => {
 
       <section className="glass-panel p-6 rounded-3xl space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-400">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#63B7AE]/20 bg-[#63B7AE]/10 text-[#63B7AE]">
             <Music2 className="w-5 h-5" />
           </div>
           <div className="flex-1">
-            <h2 className="font-bold text-white">Spotify playback</h2>
+            <h2 className="font-bold text-white">Spotify connection</h2>
             <p className="text-xs text-slate-400">
               {spotify?.connected ? `Connected${spotify.displayName ? ` as ${spotify.displayName}` : ''}` : 'Connect Spotify to listen to real tracks.'}
             </p>
@@ -139,13 +139,13 @@ export const ProfilePage: React.FC = () => {
               {spotifyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
             </button>
           ) : (
-            <button onClick={() => void connectSpotify()} disabled={spotifyLoading || spotify?.configured === false} className="px-4 py-2 rounded-full text-xs font-bold text-slate-950 bg-green-400 hover:bg-green-300 disabled:opacity-50 cursor-pointer">
+            <button onClick={() => void connectSpotify()} disabled={spotifyLoading || spotify?.configured === false} className="rounded-full bg-[#63B7AE] px-4 py-2 text-xs font-bold text-[#0B1020] hover:bg-[#7acbc2] disabled:opacity-50">
               {spotifyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Connect Spotify'}
             </button>
           )}
         </div>
         {spotify?.product && spotify.product !== 'premium' && (
-          <p className="text-xs text-amber-300">Spotify Premium is required for in-browser playback.</p>
+          <p className="text-xs text-[#A7ABC0]">Moodiflo uses Spotify for read-only discovery context. Local playback remains available without Premium.</p>
         )}
         {spotifyMessage && <p className="text-xs text-slate-300">{spotifyMessage}</p>}
       </section>

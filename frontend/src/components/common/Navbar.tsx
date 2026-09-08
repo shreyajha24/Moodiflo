@@ -37,8 +37,8 @@ export const Navbar: React.FC = () => {
     }`;
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-[#0b0c10]/80 border-b border-white/5 px-4 sm:px-8 py-3.5 transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-[#0B1020]/95 px-4 py-3.5 backdrop-blur-xl transition-all sm:px-6">
+      <div className="site-container flex items-center justify-between gap-3">
         {/* Brand Wordmark */}
         <NavLink to="/" className="flex items-center gap-2.5 group">
           <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#D9B56D]/60 bg-[#D9B56D]/10 text-[#D9B56D] transition-transform group-hover:scale-105">
@@ -90,7 +90,7 @@ export const Navbar: React.FC = () => {
         </nav>
 
         {/* Right Section: Active Vibe Badge & Profile */}
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {/* Search Trigger (Mobile / Quick) */}
           <form onSubmit={handleSearchSubmit} className="relative hidden lg:block w-48 focus-within:w-64 transition-all">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />

@@ -16,7 +16,7 @@ export const RootLayout: React.FC = () => {
       <div className="ambient-aura" aria-hidden="true" />
 
       {/* Main App Container */}
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className="relative z-10 flex min-h-screen min-w-0 flex-col">
         <Navbar />
 
         <main className="app-main">

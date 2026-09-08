@@ -5,7 +5,7 @@ import { NavLink } from 'react-router-dom';
 export const Footer: React.FC = () => {
   return (
     <footer className="mt-24 border-t border-white/[0.06] pt-12 pb-16 px-4 text-xs text-slate-500">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+      <div className="site-container flex flex-col items-center justify-between gap-6 text-center md:flex-row md:text-left">
         <div className="space-y-1.5">
           <div className="flex items-center justify-center md:justify-start gap-2">
             <Waves className="w-4 h-4 text-amber-400" />

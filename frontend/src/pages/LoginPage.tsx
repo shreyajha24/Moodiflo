@@ -38,18 +38,14 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center py-10 px-4">
-      <div className="relative w-full max-w-md">
-        {/* Glow backdrop */}
-        <div className="absolute -top-10 -left-10 w-72 h-72 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-rose-500/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 rounded-3xl p-8 bg-[#131522] border border-white/10 shadow-2xl">
+    <div className="flex min-h-[80vh] items-center justify-center px-0 py-10">
+      <div className="w-full max-w-md">
+        <div className="auth-panel p-6 sm:p-8">
           {/* Brand & Heading */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center gap-2.5 mb-3 group">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-amber-400/20">
-                <Disc3 className="w-5 h-5 text-amber-300" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#D9B56D]/40 bg-[#D9B56D]/10 text-[#D9B56D]">
+                <Disc3 className="h-5 w-5" />
               </div>
               <span className="text-2xl font-black text-white">Mood<span className="mood-wave">iflo</span></span>
             </Link>
@@ -81,7 +77,7 @@ export const LoginPage: React.FC = () => {
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:bg-white/10 transition-all"
+                  className="form-input has-icon"
                 />
               </div>
             </div>
@@ -98,7 +94,7 @@ export const LoginPage: React.FC = () => {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:bg-white/10 transition-all"
+                  className="form-input has-icon has-action"
                 />
                 <button
                   type="button"
@@ -113,7 +109,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-violet-600/30 disabled:opacity-50 transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
+              className="button-primary mt-2 w-full disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? (
                 <>
@@ -145,7 +141,7 @@ export const LoginPage: React.FC = () => {
           {/* Footer Link */}
           <p className="text-center text-xs text-slate-400 mt-6">
             Don't have an account?{' '}
-            <Link to="/register" className="text-violet-400 hover:text-violet-300 font-semibold underline underline-offset-4">
+            <Link to="/register" className="font-semibold text-[#D9B56D] underline underline-offset-4 hover:text-white">
               Sign Up
             </Link>
           </p>

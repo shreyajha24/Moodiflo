@@ -7,7 +7,7 @@ export const MobileNav: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
-    `flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold transition-colors ${
+    `flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold transition-colors ${
     isActive ? 'text-[#D9B56D]' : 'text-[#737B95] hover:text-[#EDEAF7]'
     }`;
 
