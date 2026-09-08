@@ -40,6 +40,7 @@ app_err.log
 ### Node / Frontend artifacts (if any) ###
 node_modules/
 package-lock.json
+!frontend/package-lock.json
 .npm/
 
 ### Environment / Local Secrets ###

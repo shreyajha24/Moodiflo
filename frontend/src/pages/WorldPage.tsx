@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
   Compass,
@@ -9,21 +9,25 @@ import {
   Play,
   Plus,
   RotateCcw,
-  Sparkles,
-  Volume2,
   Waves,
 } from 'lucide-react';
-import { ComposableMap, Geographies, Geography, Line, Marker } from 'react-simple-maps';
+import { geoEqualEarth, geoOrthographic, geoPath, type GeoProjection } from 'd3-geo';
+import type { FeatureCollection } from 'geojson';
 import { useNavigate } from 'react-router-dom';
-import { sargamWorldData, type SargamRegion } from '../data/sargamWorldData';
+import { feature } from 'topojson-client';
+import type { GeometryCollection, Topology } from 'topojson-specification';
+import { sargamWorldData } from '../data/sargamWorldData';
 import { usePlayer } from '../hooks/usePlayer';
 import type { SongView } from '../types';
 
-const geoJsonUrl = '/world-110m.json';
+type WorldTopology = Topology<{ countries: GeometryCollection }>;
+
+const mapWidth = 960;
+const mapHeight = 540;
 
 export const WorldPage: React.FC = () => {
   const navigate = useNavigate();
-  const { playSong, currentSong, isPlaying, togglePlay, setStoryContext } = usePlayer();
+  const { playSong, currentSong, isPlaying, setStoryContext } = usePlayer();
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [zoom, setZoom] = useState(1.15);
@@ -32,8 +36,48 @@ export const WorldPage: React.FC = () => {
     -sargamWorldData[0].coordinates[1],
   ]);
   const [projectionType, setProjectionType] = useState<'orthographic' | 'equalEarth'>('orthographic');
+  const [world, setWorld] = useState<FeatureCollection | null>(null);
+  const [worldError, setWorldError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/world-110m.json')
+      .then((response) => {
+        if (!response.ok) throw new Error(`World geography request failed (${response.status})`);
+        return response.json() as Promise<WorldTopology>;
+      })
+      .then((topology) => {
+        if (!cancelled) {
+          setWorld(feature(topology, topology.objects.countries));
+        }
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setWorldError(error instanceof Error ? error.message : 'World geography could not be loaded.');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const activeRegion = sargamWorldData[selectedIndex];
+  const projection = useMemo<GeoProjection>(() => {
+    const nextProjection = projectionType === 'orthographic' ? geoOrthographic() : geoEqualEarth();
+    nextProjection
+      .scale((projectionType === 'orthographic' ? 235 : 145) * zoom)
+      .translate([mapWidth / 2, mapHeight / 2]);
+    if (projectionType === 'orthographic') {
+      nextProjection.rotate([rotation[0], rotation[1], 0]);
+    }
+    return nextProjection;
+  }, [projectionType, rotation, zoom]);
+  const pathGenerator = useMemo(() => geoPath(projection), [projection]);
+  const projectedRegions = useMemo(
+    () => sargamWorldData.map((region) => projection(region.coordinates)),
+    [projection],
+  );
   const connectedRegion = useMemo(() => {
     return (
       sargamWorldData.find((r) => r.id === activeRegion.connectedRegionId) ||
@@ -157,88 +201,85 @@ export const WorldPage: React.FC = () => {
         </div>
 
         {/* Map / Globe Area */}
-        <div className="h-[26rem] sm:h-[34rem] w-full cursor-grab active:cursor-grabbing">
-          <ComposableMap
-            projection={projectionType === 'orthographic' ? 'geoOrthographic' : 'geoEqualEarth'}
-            projectionConfig={{
-              scale: (projectionType === 'orthographic' ? 180 : 140) * zoom,
-              rotate: projectionType === 'orthographic' ? [rotation[0], rotation[1], 0] : undefined,
-            }}
-            style={{ width: '100%', height: '100%' }}
-          >
-            <Geographies geography={geoJsonUrl}>
-              {({ geographies }) =>
-                geographies.map((geo) => (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    fill="#18223A"
-                    stroke="#263653"
-                    strokeWidth={0.5}
-                    style={{
-                      default: { outline: 'none' },
-                      hover: { fill: '#23324d', outline: 'none' },
-                      pressed: { outline: 'none' },
-                    }}
-                  />
-                ))
-              }
-            </Geographies>
-
-            {/* Connection Arcs */}
-            <Line
-              from={activeRegion.coordinates}
-              to={connectedRegion.coordinates}
-              stroke="#63B7AE"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeDasharray="4 4"
-            />
-
-            {/* Markers for all Regions */}
-            {sargamWorldData.map((reg, idx) => {
-              const isSelected = idx === selectedIndex;
-              const isBridge = reg.id === connectedRegion.id;
-
-              return (
-                <Marker key={reg.id} coordinates={reg.coordinates}>
-                  <g
-                    onClick={() => selectRegion(idx)}
-                    className="cursor-pointer group"
-                    transform="translate(0, 0)"
-                  >
-                    {/* Pulsing ring on active */}
-                    {isSelected && (
-                      <circle r={14} fill="#63B7AE" fillOpacity={0.2} className="animate-ping" />
-                    )}
-
+        <div className="h-[26rem] w-full cursor-grab active:cursor-grabbing sm:h-[34rem]">
+          {worldError ? (
+            <div className="grid h-full place-items-center text-center">
+              <div>
+                <p className="text-sm font-semibold text-white">The sound map is unavailable.</p>
+                <p className="mt-2 max-w-sm text-xs text-[#A7ABC0]">{worldError}</p>
+              </div>
+            </div>
+          ) : (
+            <svg
+              viewBox={`0 0 ${mapWidth} ${mapHeight}`}
+              role="img"
+              aria-label="Interactive world map of connected music regions"
+              className="h-full w-full"
+            >
+              <defs>
+                <radialGradient id="globe-surface" cx="50%" cy="42%">
+                  <stop offset="0%" stopColor="#1c2944" />
+                  <stop offset="100%" stopColor="#11182B" />
+                </radialGradient>
+              </defs>
+              {projectionType === 'orthographic' && (
+                <path
+                  d={pathGenerator({ type: 'Sphere' }) || undefined}
+                  fill="url(#globe-surface)"
+                  stroke="#63B7AE"
+                  strokeOpacity="0.25"
+                />
+              )}
+              {!world && <text x={mapWidth / 2} y={mapHeight / 2} textAnchor="middle" fill="#A7ABC0" fontSize="14">Loading world geography…</text>}
+              {world?.features.map((country, index) => (
+                <path
+                  key={`${country.properties?.name ?? 'country'}-${index}`}
+                  d={pathGenerator(country) || undefined}
+                  fill="#18223A"
+                  stroke="#31415f"
+                  strokeWidth="0.55"
+                  strokeOpacity="0.8"
+                  className="transition-colors hover:fill-[#23324d]"
+                />
+              ))}
+              <path
+                d={pathGenerator({ type: 'LineString', coordinates: [activeRegion.coordinates, connectedRegion.coordinates] }) || undefined}
+                fill="none"
+                stroke="#63B7AE"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeDasharray="5 5"
+                opacity="0.9"
+              />
+              {sargamWorldData.map((reg, idx) => {
+                const point = projectedRegions[idx];
+                if (!point) return null;
+                const isSelected = idx === selectedIndex;
+                const isBridge = reg.id === connectedRegion.id;
+                return (
+                  <g key={reg.id} transform={`translate(${point[0]},${point[1]})`} className="cursor-pointer" onClick={() => selectRegion(idx)}>
+                    {isSelected && <circle r="18" fill="#63B7AE" fillOpacity="0.16" className="animate-ping" />}
                     <circle
-                      r={isSelected ? 6 : isBridge ? 5 : 3.5}
+                      r={isSelected ? 7 : isBridge ? 6 : 4}
                       fill={isSelected ? '#D9B56D' : isBridge ? '#63B7AE' : '#8D86D9'}
                       stroke="#0B1020"
-                      strokeWidth={1.5}
-                      className="transition-transform group-hover:scale-150"
+                      strokeWidth="2"
                     />
-
                     <text
+                      y="-12"
                       textAnchor="middle"
-                      y={-10}
-                      style={{
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: isSelected ? '11px' : '9px',
-                        fontWeight: isSelected ? '800' : '600',
-                        fill: isSelected ? '#D9B56D' : '#EDEAF7',
-                        pointerEvents: 'none',
-                        textShadow: '0 2px 6px rgba(0,0,0,0.9)',
-                      }}
+                      fill={isSelected ? '#D9B56D' : '#EDEAF7'}
+                      fontSize={isSelected ? 12 : 10}
+                      fontWeight={isSelected ? 800 : 600}
+                      style={{ pointerEvents: 'none', textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}
                     >
                       {reg.name.split(' ')[0]}
                     </text>
                   </g>
-                </Marker>
-              );
-            })}
-          </ComposableMap>
+                );
+              })}
+            </svg>
+          )}
         </div>
 
         {/* Horizontal Region Quick Selector on Mobile */}
@@ -398,4 +439,3 @@ export const WorldPage: React.FC = () => {
     </div>
   );
 };
-

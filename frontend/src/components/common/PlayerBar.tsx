@@ -22,7 +22,7 @@ export const PlayerBar: React.FC = () => {
   const navigate = useNavigate();
   const {
     currentSong, isPlaying, currentTime, duration, progress, volume, isMuted,
-    togglePlay, next, prev, seek, setVolume, toggleMute, retry, playbackStatus, playbackError,
+    togglePlay, next, prev, seek, setVolume, toggleMute, retry, playbackStatus,
     toggleLyrics, isLyricsOpen, storyContext, activeMood,
   } = usePlayer();
 
