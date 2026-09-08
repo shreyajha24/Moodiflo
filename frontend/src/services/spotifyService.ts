@@ -17,8 +17,13 @@ export const spotifyService = {
   async disconnect(): Promise<void> {
     await api.delete('/api/spotify/connection');
   },
+<<<<<<< HEAD
   async search(query: string, offset = 0, limit = 20): Promise<SongView[]> {
     const response = await api.get<SongView[]>('/api/spotify/search', {
+=======
+  async search(query: string, offset = 0, limit = 20): Promise<import('../types').SongView[]> {
+    const response = await api.get<import('../types').SongView[]>('/api/spotify/search', {
+>>>>>>> 883cd514840436824f835fb925a0a25d880252f0
       params: { q: query, offset, limit },
     });
     return response.data;

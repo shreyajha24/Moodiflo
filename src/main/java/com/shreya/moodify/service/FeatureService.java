@@ -3,6 +3,7 @@ import com.shreya.moodify.dto.ApiDtos.*;
 import com.shreya.moodify.entity.*;
 import com.shreya.moodify.exception.ApiExceptions.*;
 import com.shreya.moodify.integration.translation.TranslationService;
+import com.shreya.moodify.integration.lyrics.LyricsProvider;
 import com.shreya.moodify.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +24,11 @@ public class FeatureService {
     private final TranslationRepository translations;
     private final MoodRepository moods;
     private final TranslationService translator;
+    private final LyricsProvider lyricsProvider;
 
     public FeatureService(UserService u, SongService s, FavoriteRepository f, PlaylistRepository p,
                           PlaylistSongRepository ps, HistoryRepository h, LyricsRepository l,
-                          TranslationRepository t, MoodRepository m, TranslationService tr) {
+                          TranslationRepository t, MoodRepository m, TranslationService tr, LyricsProvider lp) {
         this.user = u;
         this.song = s;
         this.fav = f;
@@ -37,6 +39,7 @@ public class FeatureService {
         this.translations = t;
         this.moods = m;
         this.translator = tr;
+        this.lyricsProvider = lp;
     }
 
     public User me(String email) {
@@ -146,8 +149,7 @@ public class FeatureService {
 
     public TranslationView translate(String email, Long songId, TranslationRequest r) {
         Song s = song.get(songId);
-        Lyrics l = lyrics.findBySong(s).stream().findFirst()
-                .orElseThrow(() -> new NotFound("Lyrics not found"));
+        Lyrics l = lyricsFor(s).orElseThrow(() -> new NotFound("Lyrics are unavailable for this track"));
         Translation t = translations.findBySongAndSourceLanguageAndTargetLanguage(s, l.getLanguage(), r.targetLanguage())
                 .orElseGet(() -> {
                     Translation n = new Translation();
@@ -171,8 +173,19 @@ public class FeatureService {
 
     @Transactional(readOnly = true)
     public List<String> rawLyrics(Long songId) {
-        return lyrics.findBySong(song.get(songId)).stream()
-                .map(Lyrics::getLyricsText)
-                .toList();
+        Song s = song.get(songId);
+        return lyricsFor(s).map(l -> List.of(l.getLyricsText())).orElseGet(List::of);
+    }
+
+    private java.util.Optional<Lyrics> lyricsFor(Song s) {
+        java.util.Optional<Lyrics> stored = lyrics.findBySong(s).stream().findFirst();
+        if (stored.isPresent()) return stored;
+        return lyricsProvider.find(s).map(found -> {
+            Lyrics fetched = new Lyrics();
+            fetched.setSong(s);
+            fetched.setLanguage(found.language());
+            fetched.setLyricsText(found.text());
+            return lyrics.save(fetched);
+        });
     }
 }

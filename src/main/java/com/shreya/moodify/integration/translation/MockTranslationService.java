@@ -1,1 +1,0 @@
-package com.shreya.moodify.integration.translation; import org.springframework.stereotype.Service; @Service public class MockTranslationService implements TranslationService {public String translate(String text,String source,String target){return "["+target+"] "+text;}}

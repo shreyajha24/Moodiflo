@@ -167,7 +167,7 @@ export const LyricsModal: React.FC = () => {
             <div className="flex flex-col items-center justify-center h-64 text-slate-500 text-center">
               <Music className="w-12 h-12 stroke-1 mb-2 text-slate-600" />
               <p className="font-semibold text-slate-400">No lyrics available for this song yet.</p>
-              <p className="text-xs text-slate-500 max-w-xs mt-1">Lyrics are seeded for popular demo songs.</p>
+              <p className="text-xs text-slate-500 max-w-xs mt-1">Lyrics are retrieved from an external provider when available.</p>
             </div>
           ) : (
             <div className="space-y-4">

@@ -42,12 +42,12 @@ export const LandingPage: React.FC = () => {
   const currentTheme = getMoodTheme(selectedMood);
 
   return (
-    <div className="space-y-24 pt-6 pb-16">
+    <div className="space-y-16 pb-16 pt-6 sm:space-y-20">
       {/* Hero Section */}
-      <section className="relative rounded-3xl overflow-hidden p-8 md:p-16 text-center flex flex-col items-center justify-center border border-white/10 bg-gradient-to-b from-white/[0.04] via-transparent to-transparent">
+      <section className="panel relative flex flex-col items-center justify-center overflow-hidden p-6 text-center sm:p-10 md:p-16">
         {/* Glow backdrop */}
         <div
-          className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl opacity-20 pointer-events-none transition-all duration-700"
+          className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-10 blur-3xl transition-all duration-700 sm:h-96 sm:w-96"
           style={{ background: currentTheme.primaryColor }}
         />
 
@@ -57,18 +57,18 @@ export const LandingPage: React.FC = () => {
             A New Category of Listening
           </div>
 
-          <h1 className="text-4xl sm:text-7xl font-black text-white tracking-tight font-display">
+          <h1 className="font-display text-[clamp(2.35rem,8vw,5.5rem)] font-bold leading-[1.02] tracking-tight text-white">
             Music that responds to <span className="mood-wave">your mood.</span>
           </h1>
 
-          <p className="text-base sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Moodiflo is not another music player. It is an emotional space that senses where you are, lifts your spirit, and lets music flow with you.
+          <p className="mx-auto max-w-2xl text-base leading-relaxed text-[#A7ABC0] sm:text-xl">
+            Moodiflo is a listening space for where you are now, what you want to feel, and the music you have not met yet.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <button
               onClick={() => navigate(isAuthenticated ? '/home' : '/register')}
-              className="px-8 py-4 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 hover:opacity-90 text-slate-950 font-black text-sm shadow-xl shadow-amber-400/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+              className="button-primary px-6 py-3.5 sm:px-8 sm:py-4"
             >
               Find Your Flow
               <ArrowRight className="w-4 h-4" />
@@ -76,7 +76,7 @@ export const LandingPage: React.FC = () => {
 
             <button
               onClick={() => navigate('/moods')}
-              className="px-8 py-4 rounded-full bg-white/5 hover:bg-white/10 text-white font-bold text-sm border border-white/10 hover:border-white/20 transition-all flex items-center gap-2 cursor-pointer"
+              className="button-quiet px-6 py-3.5 sm:px-8 sm:py-4"
             >
               <Sparkles className="w-4 h-4 text-amber-400" />
               Try Mood Shifter
@@ -101,7 +101,7 @@ export const LandingPage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-400/10 flex items-center justify-center text-amber-400 font-bold">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#D9B56D]/10 font-bold text-[#D9B56D]">
               01
             </div>
             <h3 className="text-lg font-bold text-white">Acknowledge</h3>
@@ -111,7 +111,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-400 font-bold">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#D97870]/10 font-bold text-[#D97870]">
               02
             </div>
             <h3 className="text-lg font-bold text-white">Understand</h3>
@@ -121,7 +121,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-400 font-bold">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#8D86D9]/10 font-bold text-[#8D86D9]">
               03
             </div>
             <h3 className="text-lg font-bold text-white">Shift</h3>
@@ -131,7 +131,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-bold">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#63B7AE]/10 font-bold text-[#63B7AE]">
               04
             </div>
             <h3 className="text-lg font-bold text-white">Feel Better</h3>

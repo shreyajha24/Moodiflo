@@ -83,7 +83,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({ song, is
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-[#12141f] border border-white/10 rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+      <div className="panel relative max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto p-5 shadow-2xl animate-in zoom-in-95 duration-200 sm:p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
@@ -114,7 +114,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({ song, is
               placeholder="New playlist name..."
               value={newPlaylistName}
               onChange={(e) => setNewPlaylistName(e.target.value)}
-              className="bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
+              className="form-input"
               autoFocus
             />
             <div className="flex justify-end gap-2">

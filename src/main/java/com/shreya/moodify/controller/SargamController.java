@@ -21,6 +21,7 @@ public class SargamController {
     public SargamPlaceView explore(@RequestParam String place, Authentication authentication) {
         return service.explore(place, authentication == null ? null : authentication.getName());
     }
+<<<<<<< HEAD
 
     @GetMapping("/reverse")
     public SargamPlaceView reverse(@RequestParam double latitude,
@@ -28,4 +29,6 @@ public class SargamController {
                                    Authentication authentication) {
         return service.reverse(latitude, longitude, authentication == null ? null : authentication.getName());
     }
+=======
+>>>>>>> 883cd514840436824f835fb925a0a25d880252f0
 }

@@ -40,8 +40,29 @@ app_err.log
 ### Node / Frontend artifacts (if any) ###
 node_modules/
 package-lock.json
+!frontend/package-lock.json
 .npm/
+dist/
+dist-ssr/
+.vite/
+coverage/
+
+### Local tooling / OS files ###
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+
+### Local credentials / certificates ###
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
 
 ### Environment / Local Secrets ###
 .env
+.env.*
+!.env.example
+!**/.env.example
 .env.local

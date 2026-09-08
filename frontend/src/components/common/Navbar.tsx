@@ -36,8 +36,8 @@ export const Navbar: React.FC = () => {
     }`;
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-[#0b0c10]/80 border-b border-white/5 px-4 sm:px-8 py-3.5 transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-[#0B1020]/95 px-4 py-3.5 backdrop-blur-xl transition-all sm:px-6">
+      <div className="site-container flex items-center justify-between gap-3">
         {/* Brand Wordmark */}
         <NavLink to="/" className="flex items-center gap-2.5 group">
           <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#D9B56D]/60 bg-[#D9B56D]/10 text-[#D9B56D] transition-transform group-hover:scale-105">
@@ -46,11 +46,16 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-col">
+<<<<<<< HEAD
             <span className="flex items-center text-lg font-semibold tracking-tight text-white">
             Mood<span className="font-semibold text-[#D9B56D]">iflo</span>
+=======
+            <span className="flex items-center text-lg font-semibold tracking-tight text-white font-display">
+              Mood<span className="font-semibold text-[#D9B56D]">iflo</span>
+>>>>>>> 883cd514840436824f835fb925a0a25d880252f0
             </span>
-            <span className="text-[10px] text-slate-400 font-medium -mt-1 tracking-wider">
-            Music with a memory
+            <span className="text-[10px] text-[#A7ABC0] font-medium -mt-1 tracking-wider">
+              Music in motion
             </span>
           </div>
         </NavLink>
@@ -62,6 +67,7 @@ export const Navbar: React.FC = () => {
           </NavLink>
           <NavLink to="/sargam" className={navItemClass}>
             <span className="flex items-center gap-1.5">
+<<<<<<< HEAD
               <Globe2 className="w-3.5 h-3.5 text-[#63B7AE]" />
               Sargam
             </span>
@@ -72,10 +78,36 @@ export const Navbar: React.FC = () => {
           <NavLink to="/diary" className={navItemClass}>
             <BookHeart className="mr-1 inline h-3.5 w-3.5 text-[#F5C76A]" /> Memory
           </NavLink>
+=======
+              <Compass className="w-3.5 h-3.5 text-[#8D86D9]" />
+              Discover
+            </span>
+          </NavLink>
+          <NavLink to="/sargam" className={navItemClass}>
+            <span className="flex items-center gap-1.5">
+              <Globe2 className="w-3.5 h-3.5 text-[#63B7AE]" />
+              Sargam
+            </span>
+          </NavLink>
+          <NavLink to="/journeys" className={navItemClass}>
+            <span className="flex items-center gap-1.5">
+              <Route className="w-3.5 h-3.5 text-[#8D86D9]" />
+              Journey
+            </span>
+          </NavLink>
+          {isAuthenticated && (
+            <NavLink to="/diary" className={navItemClass}>
+              <span className="flex items-center gap-1.5">
+                <BookHeart className="w-3.5 h-3.5 text-[#D9B56D]" />
+                Diary
+              </span>
+            </NavLink>
+          )}
+>>>>>>> 883cd514840436824f835fb925a0a25d880252f0
         </nav>
 
         {/* Right Section: Active Vibe Badge & Profile */}
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {/* Search Trigger (Mobile / Quick) */}
           <form onSubmit={handleSearchSubmit} className="relative hidden lg:block w-48 focus-within:w-64 transition-all">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
