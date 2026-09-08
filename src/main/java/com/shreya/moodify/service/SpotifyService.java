@@ -181,7 +181,7 @@ public class SpotifyService {
     @Transactional(readOnly = true)
     public List<SongView> searchByMood(String mood, String userEmail, int offset, int limit) {
         if (!config.isConfigured()) {
-            return List.of(); // caller falls back to DB recommendations
+            return List.of();
         }
 
         String query = MOOD_QUERIES.getOrDefault(mood.toUpperCase(), "music");
@@ -222,6 +222,45 @@ public class SpotifyService {
             return List.of();
         } catch (Exception e) {
             log.warn("Spotify search failed for mood {}: {}", mood, e.getMessage());
+            return List.of();
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<SongView> searchTracks(String query, String userEmail, int offset, int limit) {
+        if (!config.isConfigured() || query == null || query.isBlank()) {
+            return List.of();
+        }
+
+        String token;
+        try {
+            token = userEmail == null ? getClientCredentialsToken() : getAccessToken(userEmail);
+        } catch (Exception ex) {
+            try {
+                token = getClientCredentialsToken();
+            } catch (Exception tokenException) {
+                log.warn("Cannot obtain Spotify token for query search: {}", tokenException.getMessage());
+                return List.of();
+            }
+        }
+
+        try {
+            String url = SPOTIFY_API + "/search?type=track&limit=" + Math.min(Math.max(limit, 1), 50)
+                    + "&offset=" + Math.max(offset, 0) + "&q=" + encode(query.trim());
+            String body = webClient.get()
+                    .uri(url)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            return parseTrackResults(objectMapper.readTree(body), "Spotify Search");
+        } catch (WebClientResponseException.Unauthorized ex) {
+            clientCredentialsToken = null;
+            clientCredentialsExpiry = Instant.EPOCH;
+            log.warn("Spotify 401 during query search — token cleared");
+            return List.of();
+        } catch (Exception ex) {
+            log.warn("Spotify search failed for query {}: {}", query, ex.getMessage());
             return List.of();
         }
     }

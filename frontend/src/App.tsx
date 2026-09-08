@@ -37,6 +37,7 @@ export function App() {
                 <Route path="register" element={<RegisterPage />} />
                 <Route path="home" element={<HomePage />} />
                 <Route path="discover" element={<DiscoverPage />} />
+                <Route path="sargam" element={<WorldPage />} />
                 <Route path="journeys" element={<JourneysPage />} />
                 <Route path="world" element={<WorldPage />} />
                 <Route path="diary" element={<DiaryPage />} />

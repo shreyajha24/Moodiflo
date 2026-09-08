@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Waves, Compass, Route, BookHeart, Library } from 'lucide-react';
+import { Waves, Globe2, Route, BookHeart } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const MobileNav: React.FC = () => {
@@ -18,24 +18,19 @@ export const MobileNav: React.FC = () => {
         Home
       </NavLink>
 
-      <NavLink to="/discover" className={navItemClass}>
-        <Compass className="w-5 h-5" />
-        Discover
+      <NavLink to="/sargam" className={navItemClass}>
+        <Globe2 className="w-5 h-5" />
+        Sargam
       </NavLink>
 
       <NavLink to="/journeys" className={navItemClass}>
         <Route className="w-5 h-5" />
-        Journeys
+        Journey
       </NavLink>
 
       <NavLink to="/diary" className={navItemClass}>
         <BookHeart className="w-5 h-5" />
-        Diary
-      </NavLink>
-
-      <NavLink to="/songs" className={navItemClass}>
-        <Library className="w-5 h-5" />
-        Library
+        Memory
       </NavLink>
     </nav>
   );

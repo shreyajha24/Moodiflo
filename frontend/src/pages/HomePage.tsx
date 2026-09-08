@@ -32,7 +32,7 @@ export const HomePage: React.FC = () => {
       <div>
         <p className="eyebrow">Sargam · music in motion</p>
         <h1 className="page-title">What do you want music to feel like?</h1>
-        <p className="page-copy">Move from sound to emotion, place, and memory. Moodify makes room for the music you have not met yet.</p>
+        <p className="page-copy">Move from sound to emotion, place, and memory. Moodiflo makes room for music you have not met yet.</p>
       </div>
       <div className="panel p-5">
         <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-[#A7ABC0]">Match this moment</p>
@@ -52,6 +52,6 @@ export const HomePage: React.FC = () => {
       <div className="flex flex-col justify-between"><div><p className="eyebrow">A first movement</p><h2 className="section-title mt-2">{intent || 'Quiet focus'}</h2><p className="section-copy mt-3">Low-energy tracks, gentle transitions, and one or two unfamiliar voices. Not a playlist — a place to begin.</p></div><button onClick={() => navigate('/journeys')} className="button-link mt-6 w-fit">Shape a musical journey <ArrowRight className="h-4 w-4" /></button></div>
       {songs.length ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{songs.slice(0, 3).map((song) => <SongCard key={song.id} song={song} playlistContext={songs} />)}</div> : <div className="panel-quiet p-10 text-center text-sm text-[#A7ABC0]">No local tracks yet. Start with a journey.</div>}
     </section>
-    {feed?.recentlyPlayed?.length ? <section><div className="mb-4 flex items-center justify-between"><h2 className="section-title">Recent echoes</h2><button onClick={() => navigate('/diary')} className="button-link">Open diary <ArrowRight className="h-4 w-4" /></button></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{feed.recentlyPlayed.slice(0, 4).map((song) => <SongCard key={song.id} song={song} playlistContext={feed.recentlyPlayed} />)}</div></section> : null}
+    {feed?.recentlyPlayed?.length ? <section><div className="mb-4 flex items-center justify-between"><h2 className="section-title">Recent echoes</h2><button onClick={() => navigate('/diary')} className="button-link">Open memory <ArrowRight className="h-4 w-4" /></button></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{feed.recentlyPlayed.slice(0, 4).map((song) => <SongCard key={song.id} song={song} playlistContext={feed.recentlyPlayed} />)}</div></section> : null}
   </div>;
 };

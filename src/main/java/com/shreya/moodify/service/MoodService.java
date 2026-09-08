@@ -16,17 +16,12 @@ public class MoodService {
 
     private final MoodRepository moods;
     private final SongMoodRepository links;
-    private final RecommendationService recommendationService;
     private final SpotifyService spotifyService;
-    private final MusicProvider musicProvider;
 
-    public MoodService(MoodRepository m, SongMoodRepository l, RecommendationService recService,
-                       SpotifyService spotifyService, MusicProvider musicProvider) {
+    public MoodService(MoodRepository m, SongMoodRepository l, SpotifyService spotifyService) {
         this.moods = m;
         this.links = l;
-        this.recommendationService = recService;
         this.spotifyService = spotifyService;
-        this.musicProvider = musicProvider;
     }
 
     @Transactional(readOnly = true)
@@ -57,24 +52,10 @@ public class MoodService {
     }
 
     @Transactional(readOnly = true)
-    public MusicProvider.MusicPage recommendationsPage(String name, String userEmail, int page, int limit) {
+    public SpotifyMusicPage recommendationsPage(String name, String userEmail, int page, int limit) {
         get(name);
-        List<SongView> spotifyPreviews = spotifyService.searchByMood(name, userEmail, page * limit, limit).stream()
-                .filter(track -> track.audioUrl() != null && !track.audioUrl().isBlank())
-                .toList();
-        if (!spotifyPreviews.isEmpty()) {
-            return new MusicProvider.MusicPage(spotifyPreviews, spotifyPreviews.size() == limit);
-        }
-
-        MusicProvider.MusicPage legalTracks = musicProvider.getTracksForMood(name, page, limit);
-        if (!legalTracks.songs().isEmpty()) return legalTracks;
-
-        List<SongView> dbFallback = recommendationService.recommendForMood(name, null, null, limit).stream()
-                .filter(track -> track.audioUrl() != null
-                        && !track.audioUrl().isBlank()
-                        && !track.audioUrl().contains("example.com"))
-                .toList();
-        return new MusicProvider.MusicPage(dbFallback, false);
+        List<SongView> spotifyTracks = spotifyService.searchByMood(name, userEmail, page * limit, limit);
+        return new SpotifyMusicPage(spotifyTracks, spotifyTracks.size() == limit);
     }
 
     @Transactional(readOnly = true)

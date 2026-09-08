@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Music2 } from 'lucide-react';
-import { searchService } from '../services/searchService';
+import { spotifyService } from '../services/spotifyService';
 import type { SongView } from '../types';
 import { useDebounce } from '../hooks/useDebounce';
 import { SongCard } from '../components/common/SongCard';
@@ -40,8 +40,7 @@ export const SearchPage: React.FC = () => {
     setErrorMessage(null);
     setHasSearched(true);
     try {
-      const pageRes = await searchService.search(searchTerm, 0, 30);
-      setResults(pageRes.content);
+      setResults(await spotifyService.search(searchTerm, 0, 30));
     } catch (err) {
       setErrorMessage(getErrorMessage(err));
     } finally {

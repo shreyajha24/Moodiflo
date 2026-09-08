@@ -140,6 +140,14 @@ export interface SpotifyStatusView {
   product?: string | null;
 }
 
+export interface SargamPlaceView {
+  displayName: string;
+  latitude: number;
+  longitude: number;
+  country?: string | null;
+  tracks: SongView[];
+}
+
 export interface MusicPageResponse {
   mood: string;
   songs: SongView[];

@@ -8,7 +8,6 @@ import {
   Waves,
   Heart,
   ListMusic,
-  Compass,
   Globe2,
   BookHeart,
   Route,
@@ -48,7 +47,7 @@ export const Navbar: React.FC = () => {
           </div>
           <div className="flex flex-col">
             <span className="flex items-center text-lg font-semibold tracking-tight text-white">
-            Mood<span className="font-semibold text-[#D9B56D]">ify</span>
+            Mood<span className="font-semibold text-[#D9B56D]">iflo</span>
             </span>
             <span className="text-[10px] text-slate-400 font-medium -mt-1 tracking-wider">
             Music with a memory
@@ -61,23 +60,18 @@ export const Navbar: React.FC = () => {
           <NavLink to={isAuthenticated ? '/home' : '/'} className={navItemClass}>
             Home
           </NavLink>
-          <NavLink to="/discover" className={navItemClass}>
+          <NavLink to="/sargam" className={navItemClass}>
             <span className="flex items-center gap-1.5">
-              <Compass className="w-3.5 h-3.5 text-[#9B8AFB]" />
-              Discover
+              <Globe2 className="w-3.5 h-3.5 text-[#63B7AE]" />
+              Sargam
             </span>
           </NavLink>
           <NavLink to="/journeys" className={navItemClass}>
-            <Route className="mr-1 inline h-3.5 w-3.5 text-[#FF7A73]" /> Journeys
+            <Route className="mr-1 inline h-3.5 w-3.5 text-[#FF7A73]" /> Journey
           </NavLink>
-          <NavLink to="/world" className={navItemClass}>
-            <Globe2 className="mr-1 inline h-3.5 w-3.5 text-[#70D6D0]" /> World
+          <NavLink to="/diary" className={navItemClass}>
+            <BookHeart className="mr-1 inline h-3.5 w-3.5 text-[#F5C76A]" /> Memory
           </NavLink>
-          {isAuthenticated && (
-            <NavLink to="/diary" className={navItemClass}>
-              <BookHeart className="mr-1 inline h-3.5 w-3.5 text-[#F5C76A]" /> Diary
-            </NavLink>
-          )}
         </nav>
 
         {/* Right Section: Active Vibe Badge & Profile */}

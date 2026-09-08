@@ -2,7 +2,7 @@ package com.shreya.moodify.controller;
 
 import com.shreya.moodify.dto.ApiDtos.*;
 import com.shreya.moodify.service.MoodService;
-import com.shreya.moodify.service.MusicProvider;
+import com.shreya.moodify.service.SpotifyMusicPage;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +35,7 @@ public class MoodController {
         if (page < 0 || limit < 1 || limit > 50) {
             throw new IllegalArgumentException("page must be non-negative and limit must be between 1 and 50");
         }
-        MusicProvider.MusicPage result = service.recommendationsPage(name, email, page, limit);
+        SpotifyMusicPage result = service.recommendationsPage(name, email, page, limit);
         return new MusicPageResponse(name.toUpperCase(), result.songs(), page, limit, result.hasMore());
     }
 
