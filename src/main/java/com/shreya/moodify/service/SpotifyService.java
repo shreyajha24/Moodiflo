@@ -268,54 +268,6 @@ public class SpotifyService {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // Search tracks by query string (title, artist, keywords)
-    // ─────────────────────────────────────────────────────────────
-
-    @Transactional(readOnly = true)
-    public List<SongView> searchTracks(String query, String userEmail, int offset, int limit) {
-        if (!config.isConfigured() || query == null || query.isBlank()) {
-            return List.of();
-        }
-
-        String token;
-        try {
-            if (userEmail != null) {
-                token = getAccessToken(userEmail);
-            } else {
-                token = getClientCredentialsToken();
-            }
-        } catch (Exception e) {
-            try {
-                token = getClientCredentialsToken();
-            } catch (Exception ex) {
-                log.warn("Cannot obtain Spotify token for query search: {}", ex.getMessage());
-                return List.of();
-            }
-        }
-
-        try {
-            String url = SPOTIFY_API + "/search?type=track&limit=" + limit
-                    + "&offset=" + offset + "&q=" + encode(query.trim());
-            String body = webClient.get()
-                    .uri(url)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
-
-            return parseTrackResults(objectMapper.readTree(body), "Spotify Search");
-        } catch (WebClientResponseException.Unauthorized e) {
-            clientCredentialsToken = null;
-            clientCredentialsExpiry = Instant.EPOCH;
-            log.warn("Spotify 401 during query search — token cleared");
-            return List.of();
-        } catch (Exception e) {
-            log.warn("Spotify search failed for query {}: {}", query, e.getMessage());
-            return List.of();
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
     // Private helpers
     // ─────────────────────────────────────────────────────────────
 
