@@ -30,6 +30,16 @@ public class SpotifyController {
         return new SpotifyTokenView(spotify.getAccessToken(authentication.getName()));
     }
 
+    @GetMapping("/search")
+    public java.util.List<SongView> search(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "20") int limit,
+            Authentication authentication) {
+        String email = authentication != null ? authentication.getName() : null;
+        return spotify.searchTracks(q, email, offset, limit);
+    }
+
     @DeleteMapping("/connection")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void disconnect(Authentication authentication) {

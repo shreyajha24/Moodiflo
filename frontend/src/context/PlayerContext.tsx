@@ -3,6 +3,7 @@ import type { SongView } from '../types';
 import { historyService } from '../services/historyService';
 import { useAuth } from './AuthContext';
 import { spotifyService } from '../services/spotifyService';
+import { useSpotifyPlayer } from '../hooks/useSpotifyPlayer';
 
 type PlaybackStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'error';
 
@@ -59,13 +60,37 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [spotifyConnected, setSpotifyConnected] = useState(false);
   const [spotifyProduct, setSpotifyProduct] = useState<string | null>(null);
-  const spotifyError: string | null = null;
+  const [isSpotifyPlayingTrack, setIsSpotifyPlayingTrack] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const historyRecordedRef = useRef(false);
   const queueRef = useRef<SongView[]>([]);
   const currentIndexRef = useRef(-1);
   const currentSongRef = useRef<SongView | null>(null);
+
+  const isPremium = spotifyConnected && spotifyProduct === 'premium';
+
+  // Official Spotify Web Playback SDK integration
+  const {
+    deviceId: spotifyDeviceId,
+    playerError: spotifySdkPlayerError,
+    playSpotifyTrack,
+    toggleSpotifyPlay,
+    pauseSpotify,
+    resumeSpotify,
+    seekSpotify,
+    setSpotifyVolume,
+  } = useSpotifyPlayer(spotifyConnected, isPremium, (spState) => {
+    if (spState) {
+      setIsPlaying(!spState.paused);
+      setPlaybackStatus(spState.paused ? 'paused' : 'playing');
+      setCurrentTime(spState.position / 1000);
+      if (spState.duration) setDuration(spState.duration / 1000);
+    }
+  });
+
+  const spotifyError = spotifySdkPlayerError;
+
   useEffect(() => {
     queueRef.current = queue;
     currentIndexRef.current = currentIndex;
@@ -199,23 +224,48 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (moodContext) setActiveMood(moodContext);
 
     if (song.audioUrl) {
+      setIsSpotifyPlayingTrack(false);
+      if (isPremium) void pauseSpotify();
       playLocalAudio(song);
       return;
     }
-    if (song.spotifyTrackId || song.spotifyUri) {
+
+    if (song.spotifyUri || song.spotifyTrackId) {
+      const uri = song.spotifyUri || `spotify:track:${song.spotifyTrackId}`;
+      if (isPremium && spotifyDeviceId) {
+        if (audioRef.current) audioRef.current.pause();
+        setIsSpotifyPlayingTrack(true);
+        setPlaybackStatus('loading');
+        void playSpotifyTrack(uri).then((ok) => {
+          if (ok) {
+            setIsPlaying(true);
+            setPlaybackStatus('playing');
+          } else {
+            setIsPlaying(false);
+            setPlaybackStatus('error');
+          }
+        });
+        return;
+      }
+
       setPlaybackStatus('error');
-      setPlaybackError(spotifyConnected && spotifyProduct === 'premium'
-        ? 'Spotify playback is available after connecting a Premium account.'
-        : 'This Spotify track has no local preview. Connect Spotify later to play it.');
+      setPlaybackError(spotifyConnected && !isPremium
+        ? 'Spotify Premium is required for direct full-track streaming.'
+        : 'Spotify is not connected. Connect in your profile to stream full Spotify tracks.');
       setIsPlaying(false);
       return;
     }
+
     setPlaybackStatus('error');
     setPlaybackError('This track has no playable audio source.');
     setIsPlaying(false);
-  }, [playLocalAudio, spotifyConnected, spotifyProduct]);
+  }, [playLocalAudio, isPremium, spotifyConnected, spotifyDeviceId, playSpotifyTrack, pauseSpotify]);
 
   const togglePlay = useCallback(() => {
+    if (isSpotifyPlayingTrack && isPremium) {
+      void toggleSpotifyPlay();
+      return;
+    }
     const audio = audioRef.current;
     if (!currentSong || !audio) return;
     if (isPlaying) {
@@ -229,35 +279,62 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } else {
       playLocalAudio(currentSong);
     }
-  }, [currentSong, isPlaying, playLocalAudio]);
+  }, [currentSong, isPlaying, playLocalAudio, isSpotifyPlayingTrack, isPremium, toggleSpotifyPlay]);
 
-  const pause = useCallback(() => audioRef.current?.pause(), []);
+  const pause = useCallback(() => {
+    if (isSpotifyPlayingTrack && isPremium) {
+      void pauseSpotify();
+    } else {
+      audioRef.current?.pause();
+    }
+  }, [isSpotifyPlayingTrack, isPremium, pauseSpotify]);
+
   const resume = useCallback(() => {
-    if (audioRef.current && currentSong) void audioRef.current.play().catch(() => setPlaybackError('Playback was blocked by the browser. Press play again to allow audio.'));
-  }, [currentSong]);
+    if (isSpotifyPlayingTrack && isPremium) {
+      void resumeSpotify();
+    } else if (audioRef.current && currentSong) {
+      void audioRef.current.play().catch(() => setPlaybackError('Playback was blocked by the browser. Press play again to allow audio.'));
+    }
+  }, [isSpotifyPlayingTrack, isPremium, resumeSpotify, currentSong]);
+
   const next = useCallback(() => {
     if (currentIndex < queue.length - 1) playSong(queue[currentIndex + 1], queue, activeMood || undefined);
   }, [currentIndex, queue, playSong, activeMood]);
+
   const seek = useCallback((percentage: number) => {
     const target = Math.max(0, Math.min(100, percentage)) / 100 * duration;
-    if (audioRef.current) audioRef.current.currentTime = target;
+    if (isSpotifyPlayingTrack && isPremium) {
+      void seekSpotify(target * 1000);
+    } else if (audioRef.current) {
+      audioRef.current.currentTime = target;
+    }
     setCurrentTime(target);
-  }, [duration]);
+  }, [duration, isSpotifyPlayingTrack, isPremium, seekSpotify]);
+
   const prev = useCallback(() => {
     if (currentTime > 3) seek(0);
     else if (currentIndex > 0) playSong(queue[currentIndex - 1], queue, activeMood || undefined);
   }, [currentIndex, currentTime, queue, playSong, activeMood, seek]);
+
   const setVolume = useCallback((value: number) => {
     const next = Math.max(0, Math.min(1, value));
     setVolumeState(next);
     setIsMuted(next === 0);
+    if (isSpotifyPlayingTrack && isPremium) {
+      void setSpotifyVolume(next);
+    }
     if (audioRef.current) audioRef.current.volume = next;
-  }, []);
+  }, [isSpotifyPlayingTrack, isPremium, setSpotifyVolume]);
+
   const toggleMute = useCallback(() => {
     const muted = !isMuted;
     setIsMuted(muted);
-    if (audioRef.current) audioRef.current.volume = muted ? 0 : volume;
-  }, [isMuted, volume]);
+    const targetVol = muted ? 0 : volume;
+    if (isSpotifyPlayingTrack && isPremium) {
+      void setSpotifyVolume(targetVol);
+    }
+    if (audioRef.current) audioRef.current.volume = targetVol;
+  }, [isMuted, volume, isSpotifyPlayingTrack, isPremium, setSpotifyVolume]);
   const retry = useCallback(() => { if (currentSong) playLocalAudio(currentSong); }, [currentSong, playLocalAudio]);
   const openLyrics = useCallback(() => setIsLyricsOpen(true), []);
   const closeLyrics = useCallback(() => setIsLyricsOpen(false), []);

@@ -103,7 +103,7 @@ export const RegisterPage: React.FC = () => {
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:bg-white/10 transition-all"
+                  className="form-input has-icon"
                 />
               </div>
             </div>
