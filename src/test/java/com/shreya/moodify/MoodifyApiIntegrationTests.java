@@ -2,7 +2,11 @@ package com.shreya.moodify;
 
 import com.shreya.moodify.dto.ApiDtos.*;
 import com.shreya.moodify.entity.User;
+import com.shreya.moodify.entity.Lyrics;
+import com.shreya.moodify.entity.Song;
 import com.shreya.moodify.repository.UserRepository;
+import com.shreya.moodify.repository.LyricsRepository;
+import com.shreya.moodify.repository.SongRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +24,10 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
+import com.shreya.moodify.service.SpotifyService;
+import com.shreya.moodify.integration.translation.TranslationService;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class MoodifyApiIntegrationTests {
@@ -35,11 +44,50 @@ class MoodifyApiIntegrationTests {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private SongRepository songRepository;
+
+    @Autowired
+    private LyricsRepository lyricsRepository;
+
+    @MockBean
+    private SpotifyService spotifyService;
+
+    @MockBean
+    private TranslationService translationService;
+
     private String baseUrl;
 
     @BeforeEach
     void setUp() {
         baseUrl = "http://localhost:" + port;
+        Song fixture = songRepository.findById(1L).orElseGet(() -> {
+            Song song = new Song();
+            song.setTitle("Test Fixture Song");
+            song.setArtist("Test Fixture Artist");
+            song.setAlbum("Test Fixture Album");
+            song.setDuration(180);
+            song.setLanguage("English");
+            song.setGenre("Pop");
+            song.setDescription("Test-only catalog fixture");
+            song.setPopularity(0.8);
+            return songRepository.save(song);
+        });
+        if (lyricsRepository.findBySong(fixture).isEmpty()) {
+            Lyrics lyrics = new Lyrics();
+            lyrics.setSong(fixture);
+            lyrics.setLanguage("English");
+            lyrics.setLyricsText("Test fixture lyrics");
+            lyricsRepository.save(lyrics);
+        }
+        SongView fixtureView = new SongView(fixture.getId(), fixture.getTitle(), fixture.getArtist(),
+                fixture.getAlbum(), fixture.getDuration(), fixture.getAudioUrl(), fixture.getCoverImageUrl(),
+                fixture.getLanguage(), fixture.getGenre(), fixture.getReleaseDate(), fixture.getDescription(),
+                null, null, "TEST", fixture.getId().toString());
+        when(spotifyService.searchByMood(anyString(), nullable(String.class), anyInt(), anyInt()))
+                .thenReturn(List.of(fixtureView));
+        when(translationService.translate(anyString(), anyString(), eq("Spanish")))
+                .thenReturn("[Spanish] Test fixture lyrics");
     }
 
     private HttpHeaders authHeaders(String token) {
@@ -110,28 +158,26 @@ class MoodifyApiIntegrationTests {
     }
 
     @Test
-    @DisplayName("Admin removed: admin account cannot login (401), demo user can login (200), and catalog mutation is disabled (405)")
+    @DisplayName("Startup does not create demo accounts or grant catalog mutation access")
     void testRoleAuthorization() {
-        // 1. Verify admin account does not exist
+        // Startup must not create or mutate hardcoded legacy accounts.
         LoginRequest adminLogin = new LoginRequest("admin@moodify.local", "MoodifyAdmin123!");
         ResponseEntity<Map> adminLoginRes = restTemplate.postForEntity(baseUrl + "/api/auth/login", adminLogin, Map.class);
         assertThat(adminLoginRes.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 
-        // 2. Verify standard demo user can login
+        // Production must not create a demo account.
         LoginRequest demoLogin = new LoginRequest("demo@moodify.local", "DemoUser123!");
         ResponseEntity<AuthResponse> demoAuthRes = restTemplate.postForEntity(baseUrl + "/api/auth/login", demoLogin, AuthResponse.class);
-        assertThat(demoAuthRes.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(demoAuthRes.getBody()).isNotNull();
+        assertThat(demoAuthRes.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 
-        // 3. Attempting to POST to /api/songs -> 405 METHOD_NOT_ALLOWED (mutating admin endpoint removed)
+        // Catalog mutation remains unavailable without authentication.
         SongRequest songReq = new SongRequest(
                 "Test Song", "Test Artist", "Test Album", 200,
                 "https://example.com/audio.mp3", "https://example.com/cover.jpg",
                 "English", "Pop", LocalDate.now(), "Description", 0.9
         );
-        HttpEntity<SongRequest> userEntity = new HttpEntity<>(songReq, authHeaders(demoAuthRes.getBody().token()));
-        ResponseEntity<Map> userSongRes = restTemplate.postForEntity(baseUrl + "/api/songs", userEntity, Map.class);
-        assertThat(userSongRes.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
+        ResponseEntity<Map> unauthenticatedSongRes = restTemplate.postForEntity(baseUrl + "/api/songs", songReq, Map.class);
+        assertThat(unauthenticatedSongRes.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
@@ -330,13 +376,13 @@ class MoodifyApiIntegrationTests {
     @Test
     @DisplayName("Search endpoints with query, partial match, empty, and nonexistent")
     void testSearchEndpoints() {
-        // 1. /api/search?q=Demo
-        ResponseEntity<PageResponse> searchRes = restTemplate.getForEntity(baseUrl + "/api/search?q=Demo", PageResponse.class);
+        // Search uses an isolated test fixture; production does not seed demo songs.
+        ResponseEntity<PageResponse> searchRes = restTemplate.getForEntity(baseUrl + "/api/search?q=Fixture", PageResponse.class);
         assertThat(searchRes.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(searchRes.getBody().content()).isNotEmpty();
 
-        // 2. /api/songs/search?query=Demo
-        ResponseEntity<PageResponse> songSearchRes = restTemplate.getForEntity(baseUrl + "/api/songs/search?query=Demo", PageResponse.class);
+        // 2. /api/songs/search?query=Fixture
+        ResponseEntity<PageResponse> songSearchRes = restTemplate.getForEntity(baseUrl + "/api/songs/search?query=Fixture", PageResponse.class);
         assertThat(songSearchRes.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(songSearchRes.getBody().content()).isNotEmpty();
 

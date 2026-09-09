@@ -21,4 +21,5 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in your environment}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in your environment}
       DEMO_MODE: ${DEMO_MODE:-false}
+      PURGE_LEGACY_DEMO_DATA: ${PURGE_LEGACY_DEMO_DATA:-false}
     ports: ["8080:8080"]
