@@ -148,6 +148,22 @@ export interface SpotifyStatusView {
   product?: string | null;
 }
 
+export interface SpotifySearchItem {
+  id: string;
+  name: string;
+  subtitle: string;
+  imageUrl?: string | null;
+  externalUrl?: string | null;
+  type: 'artist' | 'album' | 'playlist';
+}
+
+export interface SpotifySearchResponse {
+  tracks: SongView[];
+  artists: SpotifySearchItem[];
+  albums: SpotifySearchItem[];
+  playlists: SpotifySearchItem[];
+}
+
 export interface SargamPlaceView {
   displayName: string;
   latitude: number;

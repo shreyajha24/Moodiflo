@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { SongView, SpotifyStatusView } from '../types';
+import type { SongView, SpotifySearchResponse, SpotifyStatusView } from '../types';
 
 export const spotifyService = {
   async getStatus(): Promise<SpotifyStatusView> {
@@ -21,6 +21,10 @@ export const spotifyService = {
     const response = await api.get<SongView[]>('/api/spotify/search', {
       params: { q: query, offset, limit },
     });
+    return response.data;
+  },
+  async searchAll(query: string, offset = 0, limit = 10): Promise<SpotifySearchResponse> {
+    const response = await api.get<SpotifySearchResponse>('/api/spotify/search/all', { params: { q: query, offset, limit } });
     return response.data;
   },
 };

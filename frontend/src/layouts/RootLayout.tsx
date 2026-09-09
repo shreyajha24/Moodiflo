@@ -13,9 +13,12 @@ export const RootLayout: React.FC = () => {
 
   return (
     <div className="app-shell">
-      <div className="ambient-aura" aria-hidden="true" />
+      <div className="ambient-aura" aria-hidden="true">
+        <div className="ambient-orb ambient-orb--c" />
+        <div className="ambient-grid" />
+        <div className="ambient-network" />
+      </div>
 
-      {/* Main App Container */}
       <div className="relative z-10 flex min-h-screen min-w-0 flex-col">
         <Navbar />
 
@@ -26,12 +29,10 @@ export const RootLayout: React.FC = () => {
           </div>
         </main>
 
-        {/* Floating Player & Overlays */}
         <PlayerBar />
         <MobileNav />
         <LyricsModal />
 
-        {/* Add to Playlist Dialog */}
         <AddToPlaylistModal
           song={playlistModalSong}
           isOpen={!!playlistModalSong}

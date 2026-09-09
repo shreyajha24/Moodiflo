@@ -53,7 +53,7 @@ export const MoodCard: React.FC<MoodCardProps> = ({ mood }) => {
 
         {/* Recommended Genres or Shift Prompt */}
         {isQuiet ? (
-          <p className="text-[11px] font-semibold text-amber-300/90 pt-1 flex items-center gap-1">
+          <p className="text-[11px] font-semibold text-cyan-300/90 pt-1 flex items-center gap-1">
             <Waves className="w-3 h-3" /> Tap to shift vibe
           </p>
         ) : mood.recommendedGenres && mood.recommendedGenres.length > 0 ? (

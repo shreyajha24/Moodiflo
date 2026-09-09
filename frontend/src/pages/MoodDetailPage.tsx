@@ -119,7 +119,7 @@ export const MoodDetailPage: React.FC = () => {
       {/* If quiet/sad, offer immediate Shift The Vibe */}
       {isQuiet && (
         <section className="rounded-3xl p-6 sm:p-8 bg-amber-500/10 border border-amber-500/20 space-y-3">
-          <div className="flex items-center gap-2 text-amber-300 text-xs font-bold uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-cyan-300 text-xs font-bold uppercase tracking-wider">
             <Sparkles className="w-4 h-4" />
             Feeling low? Shift the vibe forward
           </div>
@@ -149,7 +149,7 @@ export const MoodDetailPage: React.FC = () => {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-24 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
         </div>
       ) : songs.length === 0 ? (
         <div className="text-center py-20 text-slate-400 space-y-3">

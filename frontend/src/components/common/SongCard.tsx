@@ -79,75 +79,77 @@ export const SongCard: React.FC<SongCardProps> = ({
   return (
     <article
       onClick={() => navigate(`/songs/${song.id}`)}
-      className="panel-quiet panel-hover group relative flex cursor-pointer flex-col justify-between overflow-hidden p-3"
+      className={`music-card ${isThisSongPlaying ? 'is-playing' : ''}`}
     >
-      {/* Cover Image Container */}
-      <div className="artwork relative mb-3 aspect-square w-full rounded-[0.9rem]">
+      <div className="music-card-art">
         {song.coverImageUrl ? (
           <img
             src={song.coverImageUrl}
             alt={song.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             onError={(e) => {
-              // fallback if URL broken
               (e.target as HTMLImageElement).style.display = 'none';
             }}
           />
         ) : (
           <div className="artwork-placeholder">
-            <Music2 className="w-12 h-12 stroke-1" />
+            <Music2 className="h-10 w-10" strokeWidth={1.5} />
           </div>
         )}
 
-        {/* Hover overlay & Play button */}
-        <div className={`absolute inset-0 flex items-center justify-center bg-[#0B1020]/60 transition-opacity duration-300 ${
-          isThisSongPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-        }`}>
+        <div className="music-card-play">
           <button
             onClick={handlePlayClick}
-            className="grid h-11 w-11 place-items-center rounded-full bg-[#D9B56D] text-[#0B1020] transition-transform hover:scale-105 active:scale-95"
+            className="player-play"
             aria-label={isThisSongPlaying ? 'Pause' : 'Play'}
           >
             {isThisSongPlaying ? (
-              <Pause className="w-5 h-5 fill-current" />
+              <Pause className="h-5 w-5 fill-current" />
             ) : (
-              <Play className="w-5 h-5 fill-current ml-0.5" />
+              <Play className="ml-0.5 h-5 w-5 fill-current" />
             )}
           </button>
         </div>
 
-        {/* Genre Pill */}
         {song.genre && (
-          <span className="absolute left-2.5 top-2.5 border border-white/15 bg-[#0B1020]/75 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#A7ABC0]">
+          <span
+            className="absolute left-2 top-2 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md"
+            style={{
+              borderColor: 'var(--border)',
+              background: 'color-mix(in srgb, var(--background) 70%, transparent)',
+              color: 'var(--text-secondary)',
+            }}
+          >
             {song.genre}
           </span>
         )}
       </div>
 
-      {/* Info Section */}
-      <div className="flex flex-col gap-1">
-        <h4 className="truncate text-sm font-semibold text-[#EDEAF7] transition-colors group-hover:text-white">
+      <div className="flex min-w-0 flex-col gap-0.5 px-0.5">
+        <h4 className="truncate text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
           {song.title}
         </h4>
-        <p className="truncate text-xs text-[#A7ABC0]">
+        <p className="truncate text-xs" style={{ color: 'var(--text-secondary)' }}>
           {song.artist}
         </p>
       </div>
 
-      {/* Footer Actions */}
-      <div className="mt-3 flex items-center justify-between border-t border-white/[0.07] pt-2 text-xs text-[#737B95]">
+      <div
+        className="mt-auto flex items-center justify-between border-t pt-2 text-xs"
+        style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}
+      >
         <span>{formatDuration(song.duration)}</span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           {onAddToPlaylist && !isSpotifyTrack && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onAddToPlaylist(song);
               }}
-              className="rounded p-1.5 text-[#A7ABC0] hover:bg-white/5 hover:text-white"
+              className="rounded-lg p-1.5 transition-colors hover:bg-white/5"
+              style={{ color: 'var(--text-secondary)' }}
               title="Add to Playlist"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" strokeWidth={1.75} />
             </button>
           )}
 
@@ -155,18 +157,15 @@ export const SongCard: React.FC<SongCardProps> = ({
             <button
               onClick={handleFavoriteClick}
               disabled={favLoading}
-              className={`p-1.5 rounded-lg transition-colors ${
-                favorite
-                  ? 'text-[#D9B56D]'
-                  : 'text-[#A7ABC0] hover:bg-white/5 hover:text-[#D9B56D]'
-              }`}
+              className="rounded-lg p-1.5 transition-colors hover:bg-white/5"
+              style={{ color: favorite ? 'var(--accent-magenta)' : 'var(--text-secondary)' }}
               title={favorite ? 'Remove Favorite' : 'Add to Favorites'}
             >
-              <Heart className={`w-4 h-4 ${favorite ? 'fill-current' : ''}`} />
+              <Heart className={`h-4 w-4 ${favorite ? 'fill-current' : ''}`} strokeWidth={1.75} />
             </button>
           )}
+        </div>
       </div>
-    </div>
     </article>
   );
 };

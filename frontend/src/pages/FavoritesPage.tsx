@@ -74,7 +74,7 @@ export const FavoritesPage: React.FC = () => {
         {favorites.length > 0 && (
           <button
             onClick={() => playSong(favorites[0], favorites, 'ROMANTIC')}
-            className="px-6 py-3 rounded-full bg-gradient-to-r from-rose-500 to-amber-400 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-rose-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+            className="px-6 py-3 rounded-full bg-gradient-to-r from-rose-500 to-cyan-400 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-rose-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
           >
             <Play className="w-4 h-4 fill-current" />
             Flow Through Favorites

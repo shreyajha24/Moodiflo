@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { History, Play, Loader2, Waves } from 'lucide-react';
 import { historyService } from '../services/historyService';
@@ -63,7 +63,7 @@ export const HistoryPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3 font-display">
-            <History className="w-8 h-8 text-amber-400" />
+            <History className="w-8 h-8 text-cyan-400" />
             Flow History
           </h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -74,7 +74,7 @@ export const HistoryPage: React.FC = () => {
         {history.length > 0 && (
           <button
             onClick={() => playSong(history[0], history, 'FOCUS')}
-            className="px-6 py-3 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+            className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-400 to-rose-500 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-cyan-400/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
           >
             <Play className="w-4 h-4 fill-current" />
             Replay Stream
@@ -86,7 +86,7 @@ export const HistoryPage: React.FC = () => {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
         </div>
       ) : history.length === 0 ? (
         <EmptyState

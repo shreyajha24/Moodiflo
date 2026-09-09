@@ -40,6 +40,16 @@ public class SpotifyController {
         return spotify.searchTracks(q, email, offset, limit);
     }
 
+    @GetMapping("/search/all")
+    public SpotifySearchResponse searchAll(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "10") int limit,
+            Authentication authentication) {
+        String email = authentication != null ? authentication.getName() : null;
+        return spotify.searchAll(q, email, offset, limit);
+    }
+
     @DeleteMapping("/connection")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void disconnect(Authentication authentication) {

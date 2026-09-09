@@ -114,7 +114,7 @@ export const MoodsPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-400 mb-2">
             <Sparkles className="w-4 h-4" />
             Emotional Frequency
           </div>
@@ -128,7 +128,7 @@ export const MoodsPage: React.FC = () => {
 
         <button
           onClick={() => setShowSessionModal(true)}
-          className="flex items-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 hover:opacity-90 text-slate-950 font-extrabold text-xs shadow-xl shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all w-fit cursor-pointer"
+          className="flex items-center gap-2 px-6 py-3.5 rounded-full bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-violet-600 hover:opacity-90 text-slate-950 font-extrabold text-xs shadow-xl shadow-cyan-400/20 hover:scale-105 active:scale-95 transition-all w-fit cursor-pointer"
         >
           <Sliders className="w-4 h-4" />
           Craft Custom Session
@@ -140,7 +140,7 @@ export const MoodsPage: React.FC = () => {
         <div className="max-w-3xl space-y-4">
           <div className="space-y-1">
             <h2 className="text-xl sm:text-2xl font-black text-white font-display flex items-center gap-2">
-              <Waves className="w-5 h-5 text-amber-400" />
+              <Waves className="w-5 h-5 text-cyan-400" />
               Describe How You Feel
             </h2>
             <p className="text-xs sm:text-sm text-slate-400">
@@ -154,12 +154,12 @@ export const MoodsPage: React.FC = () => {
               placeholder="e.g. I need something gentle and calming for late night writing..."
               value={naturalQuery}
               onChange={(e) => setNaturalQuery(e.target.value)}
-              className="flex-1 px-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400/60 focus:bg-white/10 transition-all"
+              className="flex-1 px-5 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:bg-white/10 transition-all"
             />
             <button
               type="submit"
               disabled={isQuerying || !naturalQuery.trim()}
-              className="px-6 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-400/20 transition-all cursor-pointer shrink-0"
+              className="px-6 py-3.5 rounded-2xl bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 text-slate-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-cyan-400/20 transition-all cursor-pointer shrink-0"
             >
               {isQuerying ? (
                 <>
@@ -201,7 +201,7 @@ export const MoodsPage: React.FC = () => {
                   <h3 className="text-xl font-black text-white font-display">
                     Detected Mood: <span className="capitalize">{detectedTheme.displayName}</span>
                   </h3>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 text-amber-300 border border-white/10">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 text-cyan-300 border border-white/10">
                     {Math.round(queryResult.confidence * 100)}% Match
                   </span>
                 </div>
@@ -222,7 +222,7 @@ export const MoodsPage: React.FC = () => {
             {/* If detected low/sad, offer immediate shift bridge */}
             {isDetectedLow && (
               <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2">
-                <p className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                <p className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
                   Feeling low? Shift the vibe forward:
                 </p>
@@ -262,10 +262,10 @@ export const MoodsPage: React.FC = () => {
 
       {/* 2. Custom Session Result Banner */}
       {sessionResult && (
-        <section className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-amber-500/20 via-rose-500/10 to-violet-500/20 border border-amber-400/30 space-y-4">
+        <section className="rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-cyan-500/20 via-fuchsia-500/10 to-violet-500/20 border border-cyan-400/30 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-300">Custom Session Created</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-cyan-300">Custom Session Created</span>
               <h3 className="text-2xl font-black text-white font-display">{sessionResult.playlistName}</h3>
               <p className="text-xs text-slate-300">{sessionResult.songs.length} tracks tailored to your flow</p>
             </div>
@@ -351,7 +351,7 @@ export const MoodsPage: React.FC = () => {
                       onClick={() => setSessionMood(m.name)}
                       className={`p-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 justify-center border transition-all cursor-pointer ${
                         sessionMood === m.name
-                          ? 'bg-amber-400/20 border-amber-400 text-white'
+                          ? 'bg-cyan-400/20 border-cyan-400 text-white'
                           : 'bg-white/5 border-white/5 text-slate-400 hover:text-white'
                       }`}
                     >
@@ -366,7 +366,7 @@ export const MoodsPage: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between text-xs">
                   <span className="font-bold text-slate-300">Intensity Level</span>
-                  <span className="font-mono text-amber-400 font-bold">{Math.round(sessionIntensity * 100)}%</span>
+                  <span className="font-mono text-cyan-400 font-bold">{Math.round(sessionIntensity * 100)}%</span>
                 </div>
                 <input
                   type="range"
@@ -375,7 +375,7 @@ export const MoodsPage: React.FC = () => {
                   step="0.05"
                   value={sessionIntensity}
                   onChange={(e) => setSessionIntensity(parseFloat(e.target.value))}
-                  className="w-full accent-amber-400 cursor-pointer"
+                  className="w-full accent-cyan-400 cursor-pointer"
                 />
                 <div className="flex justify-between text-[10px] text-slate-500">
                   <span>Subtle & Gentle</span>
@@ -389,7 +389,7 @@ export const MoodsPage: React.FC = () => {
                 <select
                   value={sessionLanguage}
                   onChange={(e) => setSessionLanguage(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-amber-400"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400"
                 >
                   <option value="English" className="bg-[#141622]">English</option>
                   <option value="Hindi" className="bg-[#141622]">Hindi</option>
@@ -410,7 +410,7 @@ export const MoodsPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isGeneratingSession}
-                  className="px-6 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+                  className="px-6 py-2.5 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-xs shadow-lg shadow-cyan-400/20 hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
                 >
                   {isGeneratingSession ? (
                     <>

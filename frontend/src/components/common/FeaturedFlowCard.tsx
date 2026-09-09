@@ -145,7 +145,7 @@ export const FeaturedFlowCard: React.FC<FeaturedFlowCardProps> = ({
           <div className="pt-3 flex flex-wrap items-center justify-center md:justify-start gap-3">
             <button
               onClick={handlePlay}
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 hover:from-amber-300 hover:to-rose-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-400 to-rose-500 hover:from-amber-300 hover:to-rose-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-cyan-400/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
             >
               {isThisSongPlaying ? (
                 <>

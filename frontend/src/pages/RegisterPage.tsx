@@ -53,7 +53,7 @@ export const RegisterPage: React.FC = () => {
           {/* Brand & Heading */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center gap-2.5 mb-3 group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#D9B56D]/40 bg-[#D9B56D]/10 text-[#D9B56D]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#22d3ee]/40 bg-[#22d3ee]/10 text-[#22d3ee]">
                 <Disc3 className="h-5 w-5" />
               </div>
               <span className="text-2xl font-black text-white">Mood<span className="mood-wave">iflo</span></span>
@@ -172,7 +172,7 @@ export const RegisterPage: React.FC = () => {
           {/* Footer Link */}
           <p className="text-center text-xs text-slate-400 mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="font-semibold text-[#D9B56D] underline underline-offset-4 hover:text-white">
+            <Link to="/login" className="font-semibold text-[#22d3ee] underline underline-offset-4 hover:text-white">
               Sign In
             </Link>
           </p>

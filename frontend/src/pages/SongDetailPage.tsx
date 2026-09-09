@@ -196,7 +196,7 @@ export const SongDetailPage: React.FC = () => {
             )}
             {song.releaseDate && (
               <span className="flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-amber-400" />
+                <Calendar className="w-4 h-4 text-cyan-400" />
                 {song.releaseDate}
               </span>
             )}

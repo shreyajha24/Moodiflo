@@ -1,158 +1,183 @@
-import React, { useState } from 'react';
-import { useNavigate, NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  Search,
-  LogIn,
-  User as UserIcon,
-  LogOut,
-  Waves,
   Heart,
   ListMusic,
-  Globe2,
-  BookHeart,
-  Route,
+  LogOut,
+  Search,
+  Sun,
+  Moon,
+  User as UserIcon,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { spotifyService } from '../../services/spotifyService';
+import { usePlayer } from '../../hooks/usePlayer';
+import type { SongView } from '../../types';
+import moodifloLogo from '../../assets/moodiflo-logo.svg';
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { playSong } = usePlayer();
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<SongView[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const stored = localStorage.getItem('moodiflo-theme');
+    return stored === 'dark' ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('moodiflo-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setIsSearching(true);
+      spotifyService.search(searchQuery, 0, 5)
+        .then((list) => setSearchResults(list))
+        .catch(() => setSearchResults([]))
+        .finally(() => setIsSearching(false));
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setIsSearchOpen(false);
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  const navItemClass = ({ isActive }: { isActive: boolean }) =>
-    `px-3 py-2 text-xs font-semibold tracking-wide transition-colors ${
+  const navPillClass = ({ isActive }: { isActive: boolean }) =>
+    `nav-pill px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
       isActive
-        ? 'border-b border-[#D9B56D] text-white'
-        : 'text-[#A7ABC0] hover:text-white'
+        ? 'bg-white/15 text-cyan-300 font-semibold shadow-inner border border-white/20'
+        : 'text-slate-300 hover:text-white hover:bg-white/5'
     }`;
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-[#0b0c10]/80 border-b border-white/5 px-4 sm:px-8 py-3.5 transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        {/* Brand Wordmark */}
-        <NavLink to="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#D9B56D]/60 bg-[#D9B56D]/10 text-[#D9B56D] transition-transform group-hover:scale-105">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[#8D86D9]/40">
-              <Waves className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <span className="flex items-center text-lg font-semibold tracking-tight text-white">
-            Mood<span className="font-semibold text-[#D9B56D]">iflo</span>
-            </span>
-            <span className="text-[10px] text-slate-400 font-medium -mt-1 tracking-wider">
-            Music with a memory
-            </span>
-          </div>
+    <header className="moodiflo-header sticky top-0 z-40 w-full px-4 sm:px-8 py-3.5 backdrop-blur-2xl border-b transition-colors">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+        {/* Left: Brand Logo */}
+        <NavLink
+          to="/home"
+          className="moodiflo-brand flex items-center gap-2.5 hover:opacity-95 transition-opacity"
+        >
+          <img src={moodifloLogo} alt="" className="h-11 w-13 object-contain drop-shadow-lg" />
+          <span className="text-xl font-bold tracking-tight font-display">Moodiflo</span>
         </NavLink>
 
-        {/* Minimal Navigation Pills - Desktop */}
-        <nav className="hidden items-center gap-1 border-x border-white/10 px-3 md:flex">
-          <NavLink to={isAuthenticated ? '/home' : '/'} className={navItemClass}>
+        {/* Center: Main Glass Navigation: Home | Sargam | Journey | Diary */}
+        <nav
+          className="moodiflo-nav flex items-center gap-1 sm:gap-1.5 rounded-full border px-3 py-1.5 shadow-xl backdrop-blur-2xl"
+          aria-label="Main Navigation"
+        >
+          <NavLink to="/home" className={navPillClass}>
             Home
           </NavLink>
-          <NavLink to="/sargam" className={navItemClass}>
-            <span className="flex items-center gap-1.5">
-              <Globe2 className="w-3.5 h-3.5 text-[#63B7AE]" />
-              Sargam
-            </span>
+
+          <NavLink to="/sargam" className={navPillClass}>
+            Sargam
           </NavLink>
-          <NavLink to="/journeys" className={navItemClass}>
-            <Route className="mr-1 inline h-3.5 w-3.5 text-[#FF7A73]" /> Journey
+
+          <NavLink to="/journeys" className={navPillClass}>
+            Journey
           </NavLink>
-          <NavLink to="/diary" className={navItemClass}>
-            <BookHeart className="mr-1 inline h-3.5 w-3.5 text-[#F5C76A]" /> Memory
+
+          <NavLink to="/diary" className={navPillClass}>
+            Diary
           </NavLink>
+
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen(true)}
+            className="theme-icon-button p-1.5 rounded-full transition-colors ml-0.5"
+            title="Search music"
+          >
+            <Search size={14} />
+          </button>
         </nav>
 
-        {/* Right Section: Active Vibe Badge & Profile */}
+        {/* Right: Quick Search Input + Profile Menu */}
         <div className="flex items-center gap-3">
-          {/* Search Trigger (Mobile / Quick) */}
-          <form onSubmit={handleSearchSubmit} className="relative hidden lg:block w-48 focus-within:w-64 transition-all">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search soundscape..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 rounded-full bg-white/[0.05] border border-white/10 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400/50 focus:bg-white/[0.08] transition-all"
-            />
+          <form
+            onSubmit={handleSearchSubmit}
+            className="relative hidden sm:flex items-center"
+          >
+            <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs text-white backdrop-blur-xl transition-all focus-within:border-cyan-400 focus-within:bg-white/10">
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search music..."
+                className="moodiflo-search-input w-28 md:w-40 bg-transparent outline-none text-xs"
+              />
+              <button type="submit" className="theme-icon-button">
+                <Search size={13} />
+              </button>
+            </div>
           </form>
 
-          {/* User Profile / Authentication */}
+          <button
+            type="button"
+            className="theme-toggle"
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          >
+            {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
+          </button>
+
+          {/* User Profile Avatar */}
           {isAuthenticated && user ? (
             <div className="relative">
               <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="flex items-center gap-2 p-1.5 pr-3 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs text-white transition-all cursor-pointer"
+                type="button"
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-gradient-to-tr from-indigo-600 to-pink-500 text-xs font-bold text-white shadow-md hover:scale-105 transition-transform"
               >
-                <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[#D9B56D]/60 bg-[#D9B56D]/15 text-[10px] font-bold text-[#D9B56D]">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <span className="max-w-[80px] truncate font-medium">{user.name.split(' ')[0]}</span>
+                {user.name.charAt(0).toUpperCase()}
               </button>
 
-              {isMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-[#141622] border border-white/10 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-4 py-2 border-b border-white/5">
-                    <p className="text-xs font-semibold text-white truncate">{user.name}</p>
-                    <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+              {isProfileMenuOpen && (
+                <div className="moodiflo-profile-menu absolute right-0 mt-2 w-52 rounded-2xl border p-2 shadow-2xl backdrop-blur-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3 py-2 border-b">
+                    <p className="text-xs font-bold truncate">{user.name}</p>
+                    <p className="text-[10px] moodiflo-muted truncate">{user.email}</p>
                   </div>
-
                   <button
-                    onClick={() => {
-                      navigate('/profile');
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                    onClick={() => { navigate('/profile'); setIsProfileMenuOpen(false); }}
+                    className="moodiflo-menu-item w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-left transition-colors mt-1"
                   >
-                    <UserIcon className="w-3.5 h-3.5" />
-                    Profile & Stats
+                    <UserIcon size={13} /> Profile
                   </button>
-
                   <button
-                    onClick={() => {
-                      navigate('/favorites');
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                    onClick={() => { navigate('/favorites'); setIsProfileMenuOpen(false); }}
+                    className="moodiflo-menu-item w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-left transition-colors"
                   >
-                    <Heart className="w-3.5 h-3.5 text-rose-400" />
-                    Favorites
+                    <Heart size={13} /> Favorites
                   </button>
-
                   <button
-                    onClick={() => {
-                      navigate('/playlists');
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                    onClick={() => { navigate('/playlists'); setIsProfileMenuOpen(false); }}
+                    className="moodiflo-menu-item w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-left transition-colors"
                   >
-                    <ListMusic className="w-3.5 h-3.5 text-violet-400" />
-                    Playlists
+                    <ListMusic size={13} /> Playlists
                   </button>
-
-                  <div className="my-1 border-t border-white/5" />
-
                   <button
-                    onClick={() => {
-                      logout();
-                      setIsMenuOpen(false);
-                      navigate('/login');
-                    }}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-xs text-[#D97870] hover:bg-[#D97870]/10"
+                    onClick={() => { logout(); setIsProfileMenuOpen(false); navigate('/login'); }}
+                    className="moodiflo-menu-item w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-left transition-colors mt-1 border-t"
                   >
-                    <LogOut className="w-3.5 h-3.5" />
-                    Sign Out
+                    <LogOut size={13} /> Sign out
                   </button>
                 </div>
               )}
@@ -160,14 +185,78 @@ export const Navbar: React.FC = () => {
           ) : (
             <button
               onClick={() => navigate('/login')}
-              className="button-primary px-4 text-xs"
+              className="moodiflo-sign-in flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-semibold transition-colors shadow-sm"
             >
-              <LogIn className="w-3.5 h-3.5" />
-              Sign In
+              <UserIcon size={13} />
+              <span>Sign in</span>
             </button>
           )}
         </div>
       </div>
+
+      {/* Instant Search Overlay */}
+      {isSearchOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="moodiflo-search-modal w-full max-w-xl rounded-3xl border p-5 shadow-2xl backdrop-blur-2xl">
+            <div className="flex items-center justify-between pb-3 border-b">
+              <div className="flex items-center gap-2 flex-1">
+                <Search size={16} className="text-cyan-400" />
+                <input
+                  autoFocus
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search tracks, artists, or moods..."
+                  className="moodiflo-search-input w-full bg-transparent text-sm outline-none"
+                />
+              </div>
+              <button
+                onClick={() => setIsSearchOpen(false)}
+                className="theme-icon-button p-1 rounded-lg"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="mt-3 max-h-80 overflow-y-auto space-y-1">
+              {isSearching && (
+                <div className="py-6 text-center text-xs text-slate-400">
+                  Searching music across Spotify...
+                </div>
+              )}
+              {!isSearching && searchResults.length > 0 && (
+                searchResults.map((song) => (
+                  <div
+                    key={song.id}
+                    onClick={() => {
+                      playSong(song, searchResults);
+                      setIsSearchOpen(false);
+                    }}
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="h-11 w-11 rounded-lg overflow-hidden bg-white/5 shrink-0">
+                      {song.coverImageUrl && (
+                        <img src={song.coverImageUrl} alt={song.title} className="h-full w-full object-cover" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-white truncate">{song.title}</p>
+                      <p className="text-xs text-slate-400 truncate">{song.artist}</p>
+                    </div>
+                    <span className="text-[10px] font-mono uppercase text-cyan-400 px-2 py-0.5 rounded-full bg-cyan-400/10">
+                      {song.genre || song.language || 'Track'}
+                    </span>
+                  </div>
+                ))
+              )}
+              {!isSearching && searchQuery && searchResults.length === 0 && (
+                <div className="py-6 text-center text-xs text-slate-400">
+                  No tracks found for "{searchQuery}". Press Enter to browse discovery.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

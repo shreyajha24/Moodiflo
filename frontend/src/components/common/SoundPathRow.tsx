@@ -76,9 +76,9 @@ export const SoundPathRow: React.FC<SoundPathRowProps> = ({
     >
       {/* Index & Cover */}
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <span className="w-5 text-center font-mono text-xs text-slate-500 group-hover:text-amber-400 shrink-0">
+        <span className="w-5 text-center font-mono text-xs text-slate-500 group-hover:text-cyan-400 shrink-0">
           {isThisSongPlaying ? (
-            <span className="w-2 h-2 rounded-full bg-amber-400 inline-block animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-cyan-400 inline-block animate-ping" />
           ) : (
             (index + 1).toString().padStart(2, '0')
           )}
@@ -111,7 +111,7 @@ export const SoundPathRow: React.FC<SoundPathRowProps> = ({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className={`text-xs sm:text-sm font-bold truncate ${isThisSongPlaying ? 'text-amber-300' : 'text-white'}`}>
+          <p className={`text-xs sm:text-sm font-bold truncate ${isThisSongPlaying ? 'text-cyan-300' : 'text-white'}`}>
             {song.title}
           </p>
           <p className="text-[11px] text-slate-400 truncate">

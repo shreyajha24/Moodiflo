@@ -32,13 +32,15 @@ export function App() {
           <PlayerProvider>
             <Routes>
               <Route path="/" element={<RootLayout />}>
-                <Route index element={<LandingPage />} />
+                <Route index element={<HomePage />} />
+                <Route path="landing" element={<LandingPage />} />
                 <Route path="login" element={<LoginPage />} />
                 <Route path="register" element={<RegisterPage />} />
                 <Route path="home" element={<HomePage />} />
                 <Route path="discover" element={<DiscoverPage />} />
                 <Route path="sargam" element={<WorldPage />} />
                 <Route path="journeys" element={<JourneysPage />} />
+                <Route path="journey" element={<JourneysPage />} />
                 <Route path="world" element={<WorldPage />} />
                 <Route path="diary" element={<DiaryPage />} />
                 <Route path="moods" element={<MoodsPage />} />

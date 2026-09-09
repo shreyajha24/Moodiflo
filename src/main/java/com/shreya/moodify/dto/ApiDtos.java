@@ -25,5 +25,7 @@ public final class ApiDtos { private ApiDtos(){}
  public record SpotifyStatusView(boolean connected,boolean configured,String displayName,String product){}
  public record SpotifyAuthUrlView(String authUrl){}
  public record SpotifyTokenView(String accessToken){}
+ public record SpotifySearchItem(String id,String name,String subtitle,String imageUrl,String externalUrl,String type){}
+ public record SpotifySearchResponse(List<SongView> tracks,List<SpotifySearchItem> artists,List<SpotifySearchItem> albums,List<SpotifySearchItem> playlists){}
  public record SargamPlaceView(String displayName,Double latitude,Double longitude,String country,List<SongView> tracks){}
 }

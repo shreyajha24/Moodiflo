@@ -1,21 +1,52 @@
-import React, { useEffect, useState } from 'react';
-import { BookHeart, MapPin, Save } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BookHeart, MapPin, Pencil, Play, Save, Search, X } from 'lucide-react';
 import { historyService } from '../services/historyService';
+import { usePlayer } from '../hooks/usePlayer';
 import type { SongView } from '../types';
 
-type Memory = { song: string; artist: string; note: string; date: string; mood: string; location: string; tags: string };
-const storageKey = 'moodify_memories';
+type Memory = { songId: number; song: string; artist: string; note: string; date: string; location: string; coverImageUrl?: string | null };
+const STORAGE_KEY = 'moodify_memories';
+
 export const DiaryPage: React.FC = () => {
+  const { playSong } = usePlayer();
   const [history, setHistory] = useState<SongView[]>([]);
-  const [memories, setMemories] = useState<Memory[]>(() => JSON.parse(localStorage.getItem(storageKey) || '[]') as Memory[]);
+  const [memories, setMemories] = useState<Memory[]>(() => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') as Memory[]; } catch { return []; }
+  });
   const [selected, setSelected] = useState<SongView | null>(null);
   const [note, setNote] = useState('');
   const [location, setLocation] = useState('');
-  useEffect(() => { historyService.getHistory().then(setHistory).catch(() => {}); }, []);
+  const [search, setSearch] = useState('');
+  const [editing, setEditing] = useState<number | null>(null);
+
+  useEffect(() => { historyService.getHistory().then(setHistory).catch(() => setHistory([])); }, []);
+  const filteredHistory = useMemo(() => history.filter((song) => `${song.title} ${song.artist}`.toLowerCase().includes(search.toLowerCase())), [history, search]);
+
+  const selectSong = (song: SongView) => { setSelected(song); setEditing(null); setNote(''); setLocation(''); };
+  const editMemory = (memory: Memory) => {
+    const song = history.find((item) => item.id === memory.songId);
+    if (!song) return;
+    setSelected(song); setNote(memory.note); setLocation(memory.location); setEditing(memory.songId);
+  };
   const save = () => {
     if (!selected || !note.trim()) return;
-    const next = [{ song: selected.title, artist: selected.artist, note, date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), mood: 'A moment worth keeping', location, tags: 'Listening memory' }, ...memories];
-    setMemories(next); localStorage.setItem(storageKey, JSON.stringify(next)); setNote(''); setLocation(''); setSelected(null);
+    const nextMemory: Memory = { songId: selected.id, song: selected.title, artist: selected.artist, note: note.trim(), date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), location: location.trim(), coverImageUrl: selected.coverImageUrl };
+    const next = editing === null ? [nextMemory, ...memories] : memories.map((item) => item.songId === editing ? { ...item, note: nextMemory.note, location: nextMemory.location } : item);
+    setMemories(next); localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); setSelected(null); setNote(''); setLocation(''); setEditing(null);
   };
-  return <div className="space-y-10"><header><p className="eyebrow text-[#D9B56D]">Memory</p><h1 className="page-title">Remember where<br className="hidden sm:block" /> music took you.</h1><p className="page-copy">Keep the moment around the music.</p></header><section className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr]"><div className="panel p-6"><div className="mb-6 flex items-center gap-3"><BookHeart className="h-5 w-5 text-[#D9B56D]" /><div><p className="eyebrow text-[#D9B56D]">Add a memory</p><h2 className="mt-1 text-xl font-semibold text-white">Choose a listening moment</h2></div></div>{history.length ? <div className="space-y-1">{history.slice(0, 7).map((song) => <button key={song.id} onClick={() => setSelected(song)} className={`track-row w-full text-left ${selected?.id === song.id ? 'bg-[#D9B56D]/10' : ''}`}><div className="artwork">{song.coverImageUrl ? <img src={song.coverImageUrl} alt="" /> : null}</div><span className="track-row-copy"><span className="track-row-title">{song.title}</span><span className="track-row-meta">{song.artist}</span></span></button>)}</div> : <p className="text-sm leading-6 text-[#A7ABC0]">Your memories will appear here.</p>}{selected && <div className="mt-6 space-y-3 border-t border-white/[0.08] pt-5"><p className="text-sm text-[#D9B56D]">{selected.title} · {selected.artist}</p><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="What was happening around this song?" className="min-h-24 w-full resize-y border border-white/10 bg-[#18223A] p-3 text-sm text-white outline-none placeholder:text-[#737B95]" /><div className="flex items-center gap-2 border border-white/10 bg-[#18223A] px-3 py-2"><MapPin className="h-4 w-4 text-[#A7ABC0]" /><input value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Where were you?" className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-[#737B95]" /></div><button onClick={save} className="button-primary"><Save className="h-4 w-4" /> Save memory</button></div>}</div><div><div className="mb-5 flex items-end justify-between"><div><p className="eyebrow text-[#D9B56D]">The timeline</p><h2 className="section-title mt-2">Your important moments</h2></div><span className="text-xs text-[#737B95]">{memories.length} saved</span></div>{memories.length ? <div className="memory-timeline">{memories.map((memory, index) => <article key={`${memory.date}-${index}`} className="memory-point panel-quiet panel-hover p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#D9B56D]">{memory.date}</p><h3 className="mt-2 text-lg font-semibold text-white">{memory.song}</h3><p className="mt-1 text-xs text-[#A7ABC0]">{memory.artist} · {memory.mood}</p><p className="mt-4 text-sm leading-7 text-[#A7ABC0]">“{memory.note}”</p>{memory.location && <p className="mt-3 flex items-center gap-1 text-xs text-[#737B95]"><MapPin className="h-3.5 w-3.5" /> {memory.location}</p>}<p className="mt-3 text-[10px] uppercase tracking-wider text-[#737B95]">{memory.tags}</p></article>)}</div> : <div className="panel-quiet p-10 text-sm leading-6 text-[#A7ABC0]">Your memories will appear here.</div>}</div></section></div>;
+
+  return (
+    <div className="diary-page">
+      <header className="diary-heading"><div><p className="eyebrow">Diary · remember the music</p><h1 className="page-title">Keep what the music meant.</h1><p className="page-copy">Save a note beside a song from your listening history.</p></div><BookHeart className="diary-heading-icon" /></header>
+      <div className="diary-layout">
+        <section className="diary-compose">
+          <div className="section-heading"><div><p className="eyebrow">Listening history</p><h2 className="section-title">Choose a moment</h2></div></div>
+          <label className="diary-search"><Search size={15} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a song" /></label>
+          {filteredHistory.length ? <div className="diary-history">{filteredHistory.slice(0, 12).map((song) => <button key={song.id} className={`diary-song ${selected?.id === song.id ? 'is-selected' : ''}`} onClick={() => selectSong(song)}><div className="artwork">{song.coverImageUrl && <img src={song.coverImageUrl} alt="" />}</div><span><strong>{song.title}</strong><small>{song.artist}</small></span><Play size={14} /></button>)}</div> : <p className="empty-copy">Play something to begin your diary.</p>}
+          {selected && <div className="diary-editor"><div className="editor-song"><strong>{selected.title}</strong><small>{selected.artist}</small></div><textarea className="form-textarea" value={note} onChange={(event) => setNote(event.target.value)} placeholder="What do you want to remember?" /><div className="diary-location form-input"><MapPin size={15} /><input value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Place (optional)" /></div><div className="editor-actions"><button className="button-quiet" onClick={() => playSong(selected)}><Play size={14} /> Play</button><button className="button-primary" onClick={save}><Save size={14} /> {editing === null ? 'Save memory' : 'Update memory'}</button><button className="icon-button" onClick={() => setSelected(null)} aria-label="Close editor"><X size={15} /></button></div></div>}
+        </section>
+        <section className="diary-entries"><div className="section-heading"><div><p className="eyebrow">Your archive</p><h2 className="section-title">Songs worth keeping</h2></div><span className="entry-count">{memories.length} saved</span></div>{memories.length ? <div className="memory-timeline">{memories.map((memory) => <article key={`${memory.songId}-${memory.date}`} className="memory-point panel-quiet"><div className="memory-head">{memory.coverImageUrl && <div className="artwork memory-art"><img src={memory.coverImageUrl} alt="" /></div>}<div><span>{memory.date}</span><h3>{memory.song}</h3><p>{memory.artist}</p></div><button className="icon-button" onClick={() => editMemory(memory)} aria-label={`Edit note for ${memory.song}`}><Pencil size={14} /></button></div><p className="memory-note">“{memory.note}”</p>{memory.location && <p className="memory-location"><MapPin size={13} /> {memory.location}</p>}</article>)}</div> : <div className="empty-inline panel-quiet">Your saved moments will appear here.</div>}</section>
+      </div>
+    </div>
+  );
 };

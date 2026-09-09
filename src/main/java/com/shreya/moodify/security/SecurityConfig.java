@@ -100,7 +100,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/songs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/moods/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/spotify/callback").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/spotify/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/spotify/search", "/api/spotify/search/all").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/sargam/explore").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/sargam/reverse").permitAll()
                         .requestMatchers("/api/search").permitAll()

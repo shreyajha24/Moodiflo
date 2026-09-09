@@ -267,6 +267,67 @@ public class SpotifyService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public SpotifySearchResponse searchAll(String query, String userEmail, int offset, int limit) {
+        if (!config.isConfigured() || query == null || query.isBlank()) {
+            return new SpotifySearchResponse(List.of(), List.of(), List.of(), List.of());
+        }
+        String token;
+        try {
+            token = userEmail == null ? getClientCredentialsToken() : getAccessToken(userEmail);
+        } catch (Exception ex) {
+            token = getClientCredentialsToken();
+        }
+        try {
+            String url = SPOTIFY_API + "/search?type=track,artist,album,playlist&limit="
+                    + Math.min(Math.max(limit, 1), 20) + "&offset=" + Math.max(offset, 0)
+                    + "&q=" + encode(query.trim());
+            String body = webClient.get().uri(url)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .retrieve().bodyToMono(String.class).block();
+            JsonNode root = objectMapper.readTree(body);
+            return new SpotifySearchResponse(
+                    parseTrackResults(root, "Spotify Search"),
+                    parseSearchItems(root.path("artists").path("items"), "artist"),
+                    parseSearchItems(root.path("albums").path("items"), "album"),
+                    parseSearchItems(root.path("playlists").path("items"), "playlist"));
+        } catch (WebClientResponseException.Unauthorized ex) {
+            clientCredentialsToken = null;
+            clientCredentialsExpiry = Instant.EPOCH;
+            throw new ApiExceptions.BadRequest("Spotify authorization expired. Reconnect Spotify and try again.");
+        } catch (WebClientResponseException.TooManyRequests ex) {
+            throw new ApiExceptions.BadRequest("Spotify search is rate limited. Try again in a moment.");
+        } catch (Exception ex) {
+            log.warn("Spotify grouped search failed for query {}: {}", query, ex.getMessage());
+            throw new ApiExceptions.BadRequest("Spotify search is temporarily unavailable.");
+        }
+    }
+
+    private List<SpotifySearchItem> parseSearchItems(JsonNode items, String type) {
+        List<SpotifySearchItem> results = new ArrayList<>();
+        if (!items.isArray()) return results;
+        for (JsonNode item : items) {
+            String id = item.path("id").asText(null);
+            String name = item.path("name").asText(null);
+            if (id == null || name == null) continue;
+            String subtitle;
+            if (type.equals("artist")) {
+                subtitle = item.path("genres").isArray() && item.path("genres").size() > 0
+                        ? item.path("genres").get(0).asText() : "Artist";
+            } else if (type.equals("playlist")) {
+                subtitle = item.path("description").asText("Playlist");
+            } else {
+                subtitle = item.path("artists").isArray() && item.path("artists").size() > 0
+                        ? item.path("artists").get(0).path("name").asText("Album") : "Album";
+            }
+            String imageUrl = item.path("images").isArray() && item.path("images").size() > 0
+                    ? item.path("images").get(0).path("url").asText(null) : null;
+            String externalUrl = item.path("external_urls").path("spotify").asText(null);
+            results.add(new SpotifySearchItem(id, name, subtitle, imageUrl, externalUrl, type));
+        }
+        return results;
+    }
+
     // ─────────────────────────────────────────────────────────────
     // Private helpers
     // ─────────────────────────────────────────────────────────────

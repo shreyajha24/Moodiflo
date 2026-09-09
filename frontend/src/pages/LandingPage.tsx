@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Sparkles,
-  ArrowRight,
-  Waves,
-} from 'lucide-react';
+import { Sparkles, ArrowRight, AudioWaveform } from 'lucide-react';
 import { moodService } from '../services/moodService';
 import type { MoodView, SongView } from '../types';
 import { useAuth } from '../hooks/useAuth';
@@ -22,9 +18,7 @@ export const LandingPage: React.FC = () => {
   useEffect(() => {
     moodService.getAllMoods().then((data) => {
       setMoods(data);
-      if (data.length > 0) {
-        setSelectedMood(data[0].name);
-      }
+      if (data.length > 0) setSelectedMood(data[0].name);
     }).catch(() => {});
   }, []);
 
@@ -32,9 +26,7 @@ export const LandingPage: React.FC = () => {
     if (selectedMood) {
       moodService
         .getRecommendations(selectedMood)
-        .then((res) => {
-          setMoodSongs(res.songs.slice(0, 4));
-        })
+        .then((res) => setMoodSongs(res.songs.slice(0, 4)))
         .catch(() => {});
     }
   }, [selectedMood]);
@@ -42,141 +34,103 @@ export const LandingPage: React.FC = () => {
   const currentTheme = getMoodTheme(selectedMood);
 
   return (
-    <div className="space-y-16 pb-16 pt-6 sm:space-y-20">
-      {/* Hero Section */}
-      <section className="panel relative flex flex-col items-center justify-center overflow-hidden p-6 text-center sm:p-10 md:p-16">
-        {/* Glow backdrop */}
+    <div className="space-y-14 pb-12 pt-4 sm:space-y-18">
+      <section className="panel relative flex flex-col items-center justify-center overflow-hidden p-6 text-center sm:p-10 md:p-14">
         <div
-          className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-10 blur-3xl transition-all duration-700 sm:h-96 sm:w-96"
+          className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-30 blur-3xl transition-all duration-700 sm:h-96 sm:w-96"
           style={{ background: currentTheme.primaryColor }}
         />
 
         <div className="relative z-10 max-w-3xl space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-amber-300">
-            <Waves className="w-4 h-4 text-amber-400" />
-            A New Category of Listening
+          <div
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold"
+            style={{ borderColor: 'var(--border)', background: 'rgba(255,255,255,0.05)', color: 'var(--accent-cyan)' }}
+          >
+            <AudioWaveform className="h-4 w-4" strokeWidth={1.75} />
+            Moodiflo
           </div>
 
-          <h1 className="font-display text-[clamp(2.35rem,8vw,5.5rem)] font-bold leading-[1.02] tracking-tight text-white">
-            Music that responds to <span className="mood-wave">your mood.</span>
+          <h1 className="page-title !mt-0 text-center" style={{ fontSize: 'clamp(2.4rem, 7vw, 4.6rem)' }}>
+            Moodiflo
           </h1>
-
-          <p className="mx-auto max-w-2xl text-base leading-relaxed text-[#A7ABC0] sm:text-xl">
-            Moodiflo is a listening space for where you are now, what you want to feel, and the music you have not met yet.
+          <p className="page-copy mx-auto !mt-2 text-center text-base sm:text-lg">
+            Shift your mood. Discover the sound. A futuristic music space for where you are — and where you want to go.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <button
               onClick={() => navigate(isAuthenticated ? '/home' : '/register')}
-              className="button-primary px-6 py-3.5 sm:px-8 sm:py-4"
+              className="button-primary px-6 py-3.5 sm:px-8"
             >
-              Find Your Flow
-              <ArrowRight className="w-4 h-4" />
+              Enter Moodiflo
+              <ArrowRight className="h-4 w-4" strokeWidth={1.75} />
             </button>
-
-            <button
-              onClick={() => navigate('/moods')}
-              className="button-quiet px-6 py-3.5 sm:px-8 sm:py-4"
-            >
-              <Sparkles className="w-4 h-4 text-amber-400" />
+            <button onClick={() => navigate('/home')} className="button-quiet px-6 py-3.5 sm:px-8">
+              <Sparkles className="h-4 w-4" style={{ color: 'var(--accent-magenta)' }} strokeWidth={1.75} />
               Try Mood Shifter
             </button>
           </div>
         </div>
       </section>
 
-      {/* Philosophy: Acknowledge -> Understand -> Shift -> Feel Better */}
       <section className="space-y-8">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
-            The Moodiflo Philosophy
-          </span>
-          <h2 className="text-2xl sm:text-4xl font-black text-white font-display">
-            Acknowledge. Understand. Shift. Feel Better.
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400">
-            Conventional apps trap you in rigid algorithms. Moodiflo understands that your feelings are fluid, guiding you into a healthier state of mind.
+        <div className="mx-auto max-w-2xl space-y-2 text-center">
+          <p className="eyebrow">The Moodiflo path</p>
+          <h2 className="section-title">Acknowledge. Shift. Discover. Remember.</h2>
+          <p className="section-copy mx-auto">
+            Glass panels over an atmospheric glow — mood segments, Sargam, Journey, and Diary in one cohesive world.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 space-y-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#D9B56D]/10 font-bold text-[#D9B56D]">
-              01
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          {[
+            ['01', 'Acknowledge', 'Name how you feel — Happy, Calm, Energetic, or anything in between.', 'var(--accent-cyan)'],
+            ['02', 'Shift', 'Use the Mood Shifter to move toward the sound you need.', 'var(--accent-purple)'],
+            ['03', 'Discover', 'Explore Sargam by place and Journey by evolving taste.', 'var(--accent-magenta)'],
+            ['04', 'Remember', 'Keep moments in Diary — songs, notes, and places.', 'var(--accent-pink)'],
+          ].map(([n, title, copy, color]) => (
+            <div key={n} className="panel-quiet space-y-3 p-5">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold"
+                style={{
+                  color,
+                  background: `color-mix(in srgb, ${color} 14%, transparent)`,
+                  border: `1px solid color-mix(in srgb, ${color} 35%, transparent)`,
+                }}
+              >
+                {n}
+              </div>
+              <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</h3>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{copy}</p>
             </div>
-            <h3 className="text-lg font-bold text-white">Acknowledge</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Name what you feel without judgment — whether high energy, radiant joy, or quiet fatigue.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 space-y-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#D97870]/10 font-bold text-[#D97870]">
-              02
-            </div>
-            <h3 className="text-lg font-bold text-white">Understand</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Describe your day in your own natural words. Moodiflo classifies your emotional frequency.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 space-y-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#8D86D9]/10 font-bold text-[#8D86D9]">
-              03
-            </div>
-            <h3 className="text-lg font-bold text-white">Shift</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Never get stuck in sadness. Choose your destination vibe and let harmonic bridges guide you.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 space-y-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#63B7AE]/10 font-bold text-[#63B7AE]">
-              04
-            </div>
-            <h3 className="text-lg font-bold text-white">Feel Better</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Experience seamless music streaming with multi-language lyric translations that touch your soul.
-            </p>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Interactive Vibe Playground */}
-      <section className="rounded-3xl p-8 md:p-12 border border-white/10 bg-white/[0.02] space-y-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <section className="panel space-y-8 p-6 sm:p-8 md:p-10">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white font-display">
-              Sample The Flow
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Select any vibe to see how Moodiflo tunes the soundscape.
-            </p>
+            <p className="eyebrow">Sample the flow</p>
+            <h2 className="section-title mt-2">Select a vibe</h2>
+            <p className="section-copy mt-1">Real Spotify recommendations for the mood you pick.</p>
           </div>
-
-          {/* Quick mood chips */}
-          <div className="flex flex-wrap gap-2">
+          <div className="mood-segments">
             {moods.slice(0, 6).map((m) => {
               const th = getMoodTheme(m.name);
               return (
                 <button
                   key={m.id}
+                  type="button"
                   onClick={() => setSelectedMood(m.name)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
-                    selectedMood === m.name
-                      ? `${th.badgeClasses} shadow-md`
-                      : 'bg-white/5 border-white/5 text-slate-400 hover:text-white'
-                  }`}
+                  className={`mood-chip ${selectedMood === m.name ? 'is-active' : ''}`}
                 >
-                  <span className="mr-1">{th.emoji}</span>
-                  <span>{th.displayName}</span>
+                  {th.displayName}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Tracks Stream */}
         <div className="space-y-1.5">
           {moodSongs.map((song, idx) => (
             <SoundPathRow

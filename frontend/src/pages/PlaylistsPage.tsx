@@ -85,7 +85,7 @@ export const PlaylistsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-white flex items-center gap-3 font-display">
-            <ListMusic className="w-8 h-8 text-amber-400" />
+            <ListMusic className="w-8 h-8 text-cyan-400" />
             Curated Playlists
           </h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -95,7 +95,7 @@ export const PlaylistsPage: React.FC = () => {
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-6 py-3 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+          className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-400 to-rose-500 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-cyan-400/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Create Playlist
@@ -106,7 +106,7 @@ export const PlaylistsPage: React.FC = () => {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
         </div>
       ) : playlists.length === 0 ? (
         <EmptyState
@@ -122,13 +122,13 @@ export const PlaylistsPage: React.FC = () => {
             <div
               key={playlist.id}
               onClick={() => navigate(`/playlists/${playlist.id}`)}
-              className="group p-5 rounded-3xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-amber-400/40 transition-all cursor-pointer flex flex-col justify-between h-48"
+              className="group p-5 rounded-3xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-cyan-400/40 transition-all cursor-pointer flex flex-col justify-between h-48"
             >
               <div>
-                <div className="w-10 h-10 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 mb-3 group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 rounded-2xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 mb-3 group-hover:scale-110 transition-transform">
                   <Waves className="w-5 h-5" />
                 </div>
-                <h3 className="text-base font-bold text-white group-hover:text-amber-300 transition-colors line-clamp-1">
+                <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
                   {playlist.name}
                 </h3>
                 <p className="text-xs text-slate-400 line-clamp-2 mt-1">
@@ -162,7 +162,7 @@ export const PlaylistsPage: React.FC = () => {
                   placeholder="e.g. Midnight Ambient Flow"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-amber-400"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400"
                 />
               </div>
 
@@ -173,7 +173,7 @@ export const PlaylistsPage: React.FC = () => {
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-amber-400 resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white focus:outline-none focus:border-cyan-400 resize-none"
                 />
               </div>
 
@@ -188,7 +188,7 @@ export const PlaylistsPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isCreating || !name.trim()}
-                  className="px-6 py-2 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/20 cursor-pointer"
+                  className="px-6 py-2 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black text-xs shadow-lg shadow-cyan-400/20 cursor-pointer"
                 >
                   {isCreating ? 'Creating...' : 'Create'}
                 </button>

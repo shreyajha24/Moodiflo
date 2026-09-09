@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -89,7 +89,7 @@ export const PlaylistDetailPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24 text-slate-400">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
+        <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
       </div>
     );
   }
@@ -120,13 +120,13 @@ export const PlaylistDetailPage: React.FC = () => {
       </button>
 
       {/* Playlist Hero */}
-      <section className="rounded-3xl p-6 md:p-10 border border-white/10 flex flex-col md:flex-row items-center md:items-start gap-6 bg-gradient-to-br from-amber-500/15 via-white/[0.02] to-rose-500/10 shadow-2xl">
-        <div className="w-44 h-44 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400 shadow-2xl shrink-0">
+      <section className="rounded-3xl p-6 md:p-10 border border-white/10 flex flex-col md:flex-row items-center md:items-start gap-6 bg-gradient-to-br from-cyan-500/15 via-white/[0.02] to-rose-500/10 shadow-2xl">
+        <div className="w-44 h-44 rounded-2xl bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 shadow-2xl shrink-0">
           <Waves className="w-16 h-16" />
         </div>
 
         <div className="flex-1 text-center md:text-left space-y-3">
-          <span className="inline-block px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-300 text-xs font-bold uppercase tracking-wider">
+          <span className="inline-block px-3 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold uppercase tracking-wider">
             Curated Flow
           </span>
           <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight font-display">
@@ -143,7 +143,7 @@ export const PlaylistDetailPage: React.FC = () => {
             {songs.length > 0 && (
               <button
                 onClick={() => playSong(songs[0], songs, playlist.name)}
-                className="px-6 py-3 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-amber-400/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-400 to-rose-500 hover:opacity-90 text-slate-950 font-black text-xs shadow-lg shadow-cyan-400/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
               >
                 <Play className="w-4 h-4 fill-current" />
                 Flow All
@@ -217,7 +217,7 @@ export const PlaylistDetailPage: React.FC = () => {
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <p className={`text-xs sm:text-sm font-bold truncate ${isThisPlaying ? 'text-amber-300' : 'text-white'}`}>
+                      <p className={`text-xs sm:text-sm font-bold truncate ${isThisPlaying ? 'text-cyan-300' : 'text-white'}`}>
                         {s.title}
                       </p>
                       <p className="text-[11px] text-slate-400 truncate">{s.artist}</p>

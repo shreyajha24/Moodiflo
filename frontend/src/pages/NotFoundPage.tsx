@@ -27,7 +27,7 @@ export const NotFoundPage: React.FC = () => {
       <div className="flex flex-wrap items-center justify-center gap-4">
         <button
           onClick={() => navigate('/home')}
-          className="px-6 py-3 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition-all shadow-lg shadow-amber-400/20 flex items-center gap-2 cursor-pointer"
+          className="px-6 py-3 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-xs transition-all shadow-lg shadow-cyan-400/20 flex items-center gap-2 cursor-pointer"
         >
           <Home className="w-4 h-4" />
           Back to Flow
@@ -36,7 +36,7 @@ export const NotFoundPage: React.FC = () => {
           onClick={() => navigate('/moods')}
           className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/15 text-white font-semibold text-xs border border-white/10 transition-all flex items-center gap-2 cursor-pointer"
         >
-          <Sparkles className="w-4 h-4 text-amber-400" />
+          <Sparkles className="w-4 h-4 text-cyan-400" />
           Shift Vibe
         </button>
       </div>

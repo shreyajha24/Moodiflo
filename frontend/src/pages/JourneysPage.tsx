@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Play, SlidersHorizontal } from 'lucide-react';
-import { moodService } from '../services/moodService';
+import { ArrowRight, Play, Route } from 'lucide-react';
+import { historyService } from '../services/historyService';
 import { usePlayer } from '../hooks/usePlayer';
 import type { SongView } from '../types';
 
-const stages = [['Begin', 'Calm'], ['Drift', 'Curious'], ['Discover', 'Open'], ['Rise', 'Energetic'], ['Arrive', 'Euphoric']];
 export const JourneysPage: React.FC = () => {
-  const [songs, setSongs] = useState<SongView[]>([]);
+  const [history, setHistory] = useState<SongView[]>([]);
   const { playSong } = usePlayer();
-  useEffect(() => {
-    Promise.all(['CALM', 'DREAMY', 'FOCUS', 'ENERGETIC', 'PARTY'].map((mood) => moodService.getRecommendations(mood, 0, 1)))
-      .then((pages) => setSongs(pages.flatMap((page) => page.songs)))
-      .catch(() => setSongs([]));
-  }, []);
-  return <div className="space-y-10"><header><p className="eyebrow text-[#D97870]">Music in motion</p><h1 className="page-title">A journey from<br className="hidden sm:block" /> calm to euphoric.</h1><p className="page-copy">Move through changing moods, with a real Spotify track at every stage.</p></header><section className="panel overflow-hidden"><div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.08] p-6 sm:p-8"><div><p className="eyebrow text-[#D97870]">Tonight's route</p><h2 className="mt-2 text-3xl font-semibold text-white">Calm → Euphoric</h2></div><button className="button-quiet"><SlidersHorizontal className="h-4 w-4" /> Shape journey</button></div><div className="journey-path">{stages.map(([name, mood], index) => <article key={name} className="journey-stage"><div className="journey-stage-dot" /><div className="journey-stage-art artwork">{songs[index]?.coverImageUrl ? <img src={songs[index].coverImageUrl} alt="" /> : null}</div><div className="journey-stage-copy"><p className="text-[10px] uppercase tracking-widest text-[#A7ABC0]">{name}</p><h3 className="mt-1 text-base font-semibold text-white">{mood}</h3>{songs[index] && <p className="mt-1 truncate text-xs text-[#737B95]">{songs[index].title} · {songs[index].artist}</p>}</div></article>)}</div><div className="flex flex-wrap items-center justify-between gap-4 p-6 sm:p-8"><p className="text-sm text-[#A7ABC0]">Each stage changes the next.</p><button onClick={() => songs.length && playSong(songs[0], songs)} className="button-primary"><Play className="h-4 w-4 fill-current" /> Begin journey</button></div></section></div>;
+  useEffect(() => { historyService.getHistory().then(setHistory).catch(() => setHistory([])); }, []);
+  const trail = history.slice(0, 8);
+
+  return (
+    <div className="journey-page">
+      <header className="journey-heading"><div><p className="eyebrow">Journey · your listening path</p><h1 className="page-title">See where your taste moves next.</h1><p className="page-copy">A connected trail made from what you play and discover.</p></div><Route className="journey-heading-icon" /></header>
+      {trail.length ? <section className="journey-route panel"><div className="section-heading"><div><p className="eyebrow">Listening path</p><h2 className="section-title">Recent discoveries</h2></div><span className="entry-count">{trail.length} moments</span></div><div className="journey-path">{trail.map((song, index) => <button key={`${song.id}-${index}`} className="journey-stage" onClick={() => playSong(song, trail)}><span className="journey-stage-dot" /><div className="journey-stage-art artwork">{song.coverImageUrl && <img src={song.coverImageUrl} alt="" />}</div><span className="journey-stage-copy"><small>Discovery {index + 1}</small><strong>{song.title}</strong><em>{song.artist}</em></span><span className="journey-stage-play"><Play size={13} /></span></button>)}</div><div className="journey-footer"><span>Keep listening to extend the path.</span><button className="button-link" onClick={() => trail[0] && playSong(trail[0], trail)}>Play your trail <ArrowRight size={14} /></button></div></section> : <div className="empty-inline panel-quiet"><strong>Your journey starts with your next discovery.</strong><span>Play a song and it will become the first point on your path.</span></div>}
+    </div>
+  );
 };

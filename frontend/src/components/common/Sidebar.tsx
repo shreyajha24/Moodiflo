@@ -48,7 +48,7 @@ export const Sidebar: React.FC = () => {
         <div>
           <h1 className="text-xl font-black tracking-tight text-white flex items-center gap-1">
             Mood<span className="mood-wave">iflo</span>
-            <Sparkles className="w-4 h-4 text-amber-400 fill-amber-400" />
+            <Sparkles className="w-4 h-4 text-cyan-400 fill-cyan-400" />
           </h1>
           <p className="text-[10px] text-slate-500 font-medium tracking-wider uppercase">Vibe & Flow Music</p>
         </div>
@@ -66,7 +66,7 @@ export const Sidebar: React.FC = () => {
               </NavLink>
             )}
             <NavLink to="/moods" className={navLinkClass}>
-              <Sparkles className="w-4 h-4 text-amber-400" />
+              <Sparkles className="w-4 h-4 text-cyan-400" />
               Mood Explorer
             </NavLink>
             <NavLink to="/songs" className={navLinkClass}>
