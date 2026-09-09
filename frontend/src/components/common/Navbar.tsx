@@ -68,18 +68,19 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="moodiflo-header sticky top-0 z-40 w-full px-4 sm:px-8 py-3.5 backdrop-blur-2xl border-b transition-colors">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+      <div className="moodiflo-header-inner mx-auto flex max-w-7xl items-center justify-between gap-4">
         {/* Left: Brand Logo */}
         <NavLink
           to="/home"
-          className="moodiflo-brand flex items-center gap-2.5 hover:opacity-95 transition-opacity"
+          className="moodiflo-brand flex shrink-0 items-center gap-2.5 whitespace-nowrap hover:opacity-95 transition-opacity"
         >
-          <img src={moodifloLogo} alt="" className="h-11 w-13 object-contain drop-shadow-lg" />
-          <span className="text-xl font-bold tracking-tight font-display">Moodiflo</span>
+          <img src={moodifloLogo} alt="Moodiflo" className="moodiflo-logo h-11 w-[3.25rem] shrink-0 object-contain drop-shadow-lg" />
+          <span className="moodiflo-brand-name text-xl font-bold tracking-tight font-display">Moodiflo</span>
         </NavLink>
 
         {/* Center: Main Glass Navigation: Home | Sargam | Journey | Diary */}
         <nav
+          data-desktop-nav
           className="moodiflo-nav flex items-center gap-1 sm:gap-1.5 rounded-full border px-3 py-1.5 shadow-xl backdrop-blur-2xl"
           aria-label="Main Navigation"
         >
@@ -110,7 +111,7 @@ export const Navbar: React.FC = () => {
         </nav>
 
         {/* Right: Quick Search Input + Profile Menu */}
-        <div className="flex items-center gap-3">
+        <div className="moodiflo-header-actions flex shrink-0 items-center gap-3">
           <form
             onSubmit={handleSearchSubmit}
             className="relative hidden sm:flex items-center"

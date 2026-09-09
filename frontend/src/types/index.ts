@@ -47,6 +47,8 @@ export interface SargamPlaceView {
   longitude: number;
   country?: string | null;
   tracks: SongView[];
+  genres: string[];
+  artists: string[];
 }
 
 export interface MoodView {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ExternalLink, Music2, Search as SearchIcon } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { spotifyService } from '../services/spotifyService';
@@ -18,21 +18,32 @@ export const SearchPage: React.FC = () => {
   const [results, setResults] = useState<SpotifySearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [configured, setConfigured] = useState<boolean | null>(null);
   const debounced = useDebounce(query, 350);
 
-  useEffect(() => {
-    const value = debounced.trim();
+  const runSearch = useCallback((value: string) => {
     if (!value) { setResults(null); setError(null); return; }
     setParams({ q: value }, { replace: true });
+    if (configured === false) {
+      setResults(null);
+      setError('Music service is not configured. Add Spotify credentials to the backend environment.');
+      return;
+    }
     setLoading(true); setError(null);
     spotifyService.searchAll(value, 0, 8).then(setResults).catch((reason) => { setResults(null); setError(getErrorMessage(reason)); }).finally(() => setLoading(false));
-  }, [debounced, setParams]);
+  }, [configured, setParams]);
+
+  useEffect(() => {
+    spotifyService.getStatus().then((status) => setConfigured(status.configured)).catch(() => setConfigured(null));
+  }, []);
+
+  useEffect(() => { runSearch(debounced.trim()); }, [debounced, runSearch]);
 
   return (
     <div className="search-page">
       <header className="search-header"><p className="eyebrow">Search / Spotify</p><h1 className="page-title">Find your next sound.</h1><p className="page-copy">Tracks, artists, albums and playlists from Spotify.</p><label className="search-field panel-quiet"><SearchIcon size={20} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search a song, artist, album or playlist" aria-label="Search Spotify" /></label></header>
       {loading && <div className="search-skeletons" aria-label="Loading search results">{Array.from({ length: 6 }).map((_, index) => <span key={index} />)}</div>}
-      {!loading && error && <div className="empty-inline panel-quiet">{error}</div>}
+      {!loading && error && <div className="empty-inline panel-quiet"><span>{error}</span><button className="button-secondary" type="button" onClick={() => runSearch(query.trim())}>Retry</button></div>}
       {!loading && !error && results && groups.map(({ key, label }) => {
         const items = results[key];
         if (!items.length) return null;

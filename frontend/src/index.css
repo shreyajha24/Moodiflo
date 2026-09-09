@@ -101,6 +101,8 @@ body,
 }
 
 .moodiflo-brand { color: var(--text-primary); }
+.moodiflo-logo { animation: moodiflo-logo-breathe 5s ease-in-out infinite; }
+@keyframes moodiflo-logo-breathe { 0%, 100% { filter: drop-shadow(0 0 0 transparent); } 50% { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--accent-cyan) 28%, transparent)); } }
 .moodiflo-nav {
   border-color: var(--border);
   background: color-mix(in srgb, var(--surface-elevated) 82%, transparent);
@@ -1180,6 +1182,9 @@ body,
 .globe-label { position: absolute; left: 1.2rem; bottom: 1rem; z-index: 2; display: grid; gap: .2rem; color: var(--text-primary); font-size: 1rem; font-weight: 650; }
 .globe-label small { color: var(--text-muted); font-size: .68rem; font-weight: 400; }
 .sargam-results { padding: 1.2rem; }
+.sargam-insights { display: grid; gap: .65rem; padding: .8rem; border: 1px solid var(--border); border-radius: .9rem; background: var(--surface-glass); color: var(--text-secondary); font-size: .72rem; }
+.sargam-insights p { margin: 0; line-height: 1.55; }
+.sargam-insights strong { color: var(--text-primary); font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; }
 @media (max-width: 850px) { .diary-layout, .sargam-layout { grid-template-columns: 1fr; } .sargam-globe, .sargam-globe svg { min-height: 25rem; } }
 @media (max-width: 560px) { .home-hero, .diary-heading, .journey-heading, .sargam-heading { align-items: start; flex-direction: column; } .mood-shifter { flex-wrap: wrap; } .mood-shifter-line { min-width: 10rem; order: 3; flex-basis: 100%; } .globe-caption small { display: none; } }
 
@@ -1883,6 +1888,16 @@ body,
 }
 
 @media (max-width: 767px) {
+  .moodiflo-header { padding-inline: .75rem; }
+  .moodiflo-header-inner { gap: .5rem; }
+  .moodiflo-brand { gap: .4rem; }
+  .moodiflo-logo { width: 2.75rem; height: 2.75rem; }
+  .moodiflo-brand-name { font-size: clamp(1rem, 5vw, 1.2rem); }
+  .moodiflo-nav,
+  .moodiflo-header-actions form { display: none; }
+  .moodiflo-header-actions { gap: .4rem; }
+  .moodiflo-sign-in { padding-inline: .55rem; }
+  .moodiflo-sign-in span { display: none; }
   .app-main > div,
   .site-container {
     width: min(calc(100% - 1.5rem), 42rem);

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shreya.moodify.dto.ApiDtos.SargamPlaceView;
 import com.shreya.moodify.dto.ApiDtos.SongView;
+import com.shreya.moodify.dto.ApiDtos.SpotifySearchResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -71,9 +72,21 @@ public class SargamService {
                 address.path("village"), address.path("municipality"), address.path("state"));
         String country = address.path("country").asText("");
         String spotifyQuery = firstNonBlank(locality, country, displayName);
-        List<SongView> tracks = spotify.searchTracks(spotifyQuery, email, 0, 12);
+        List<SongView> tracks;
+        List<String> genres;
+        List<String> artists;
+        try {
+            SpotifySearchResponse grouped = spotify.searchAll(spotifyQuery, email, 0, 12);
+            tracks = grouped.tracks();
+            genres = grouped.artists().stream().map(item -> item.subtitle()).filter(value -> value != null && !value.isBlank() && !value.equalsIgnoreCase("Artist")).distinct().limit(8).toList();
+            artists = grouped.artists().stream().map(item -> item.name()).filter(value -> value != null && !value.isBlank()).distinct().limit(8).toList();
+        } catch (RuntimeException ex) {
+            tracks = spotify.searchTracks(spotifyQuery, email, 0, 12);
+            genres = tracks.stream().map(SongView::genre).filter(value -> value != null && !value.isBlank()).distinct().limit(8).toList();
+            artists = tracks.stream().map(SongView::artist).filter(value -> value != null && !value.isBlank()).distinct().limit(8).toList();
+        }
         return new SargamPlaceView(displayName, result.path("lat").asDouble(),
-                result.path("lon").asDouble(), country, tracks);
+                result.path("lon").asDouble(), country, tracks, genres, artists);
     }
 
     private String firstNonBlank(JsonNode... values) {
