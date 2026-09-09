@@ -153,6 +153,9 @@ public class SpotifyService {
         if (!configured) {
             return new SpotifyStatusView(false, false, null, null);
         }
+        if (userEmail == null || userEmail.isBlank()) {
+            return new SpotifyStatusView(false, true, null, null);
+        }
         User user = userRepo.findByEmailIgnoreCase(userEmail)
                 .orElseThrow(() -> new ApiExceptions.NotFound("User not found."));
         boolean connected = user.getSpotifyAccessToken() != null;
@@ -300,6 +303,28 @@ public class SpotifyService {
         } catch (Exception ex) {
             log.warn("Spotify grouped search failed for query {}: {}", query, ex.getMessage());
             throw new ApiExceptions.BadRequest("Spotify search is temporarily unavailable.");
+        }
+    }
+
+    /** Reads genres from Spotify artist metadata when Spotify provides them. */
+    @Transactional(readOnly = true)
+    public List<String> artistGenres(String artistId, String userEmail) {
+        if (!config.isConfigured() || artistId == null || artistId.isBlank()) return List.of();
+        try {
+            String token = userEmail == null ? getClientCredentialsToken() : getAccessToken(userEmail);
+            String body = webClient.get().uri(SPOTIFY_API + "/artists/" + encode(artistId))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .retrieve().bodyToMono(String.class).block();
+            JsonNode genres = objectMapper.readTree(body).path("genres");
+            if (!genres.isArray()) return List.of();
+            List<String> result = new ArrayList<>();
+            genres.forEach(value -> {
+                if (value.isTextual() && !value.asText().isBlank()) result.add(value.asText());
+            });
+            return result;
+        } catch (Exception ex) {
+            log.debug("Spotify artist genres unavailable for {}: {}", artistId, ex.getMessage());
+            return List.of();
         }
     }
 

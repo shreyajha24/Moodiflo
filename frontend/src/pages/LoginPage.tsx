@@ -32,11 +32,6 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleFillDemo = () => {
-    setEmail('demo@moodify.local');
-    setPassword('DemoUser123!');
-  };
-
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-0 py-10">
       <div className="w-full max-w-md">
@@ -121,22 +116,6 @@ export const LoginPage: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Fill Buttons */}
-          <div className="mt-6 pt-5 border-t border-white/5">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
-              Quick Demo Fill
-            </p>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleFillDemo}
-                className="w-full py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-medium transition-colors text-center"
-              >
-                Demo User
-              </button>
-            </div>
-          </div>
 
           {/* Footer Link */}
           <p className="text-center text-xs text-slate-400 mt-6">

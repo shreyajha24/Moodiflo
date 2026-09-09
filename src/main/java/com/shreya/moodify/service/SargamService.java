@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Service
 public class SargamService {
@@ -71,22 +74,46 @@ public class SargamService {
         String locality = firstNonBlank(address.path("city"), address.path("town"),
                 address.path("village"), address.path("municipality"), address.path("state"));
         String country = address.path("country").asText("");
-        String spotifyQuery = firstNonBlank(locality, country, displayName);
-        List<SongView> tracks;
-        List<String> genres;
-        List<String> artists;
-        try {
-            SpotifySearchResponse grouped = spotify.searchAll(spotifyQuery, email, 0, 12);
-            tracks = grouped.tracks();
-            genres = grouped.artists().stream().map(item -> item.subtitle()).filter(value -> value != null && !value.isBlank() && !value.equalsIgnoreCase("Artist")).distinct().limit(8).toList();
-            artists = grouped.artists().stream().map(item -> item.name()).filter(value -> value != null && !value.isBlank()).distinct().limit(8).toList();
-        } catch (RuntimeException ex) {
-            tracks = spotify.searchTracks(spotifyQuery, email, 0, 12);
-            genres = tracks.stream().map(SongView::genre).filter(value -> value != null && !value.isBlank()).distinct().limit(8).toList();
-            artists = tracks.stream().map(SongView::artist).filter(value -> value != null && !value.isBlank()).distinct().limit(8).toList();
+        List<String> queries = new ArrayList<>();
+        addQuery(queries, locality);
+        addQuery(queries, country);
+        if (locality != null && !locality.isBlank() && country != null && !country.isBlank()) {
+            addQuery(queries, locality + " music");
         }
+
+        Map<String, SongView> trackMap = new LinkedHashMap<>();
+        Map<String, String> artistMap = new LinkedHashMap<>();
+        Map<String, String> artistIds = new LinkedHashMap<>();
+        Map<String, String> genreMap = new LinkedHashMap<>();
+        for (String query : queries) {
+            try {
+                SpotifySearchResponse grouped = spotify.searchAll(query, email, 0, 12);
+                grouped.tracks().forEach(track -> trackMap.putIfAbsent(track.providerTrackId() != null ? track.providerTrackId() : String.valueOf(track.id()), track));
+                grouped.artists().forEach(artist -> {
+                    artistMap.putIfAbsent(artist.id(), artist.name());
+                    artistIds.putIfAbsent(artist.id(), artist.id());
+                    if (artist.subtitle() != null && !artist.subtitle().isBlank() && !artist.subtitle().equalsIgnoreCase("Artist")) {
+                        genreMap.putIfAbsent(artist.subtitle(), artist.subtitle());
+                    }
+                });
+            } catch (RuntimeException ex) {
+                // One failed query must not prevent the other resolved place terms
+                // from returning real Spotify results.
+            }
+        }
+        List<SongView> tracks = trackMap.values().stream().limit(20).toList();
+        artistIds.keySet().stream().limit(8).forEach(artistId ->
+                spotify.artistGenres(artistId, email).forEach(genre -> genreMap.putIfAbsent(genre, genre)));
+        List<String> genres = genreMap.values().stream().limit(8).toList();
+        List<String> artists = artistMap.values().stream().limit(8).toList();
         return new SargamPlaceView(displayName, result.path("lat").asDouble(),
                 result.path("lon").asDouble(), country, tracks, genres, artists);
+    }
+
+    private void addQuery(List<String> queries, String value) {
+        if (value != null && !value.isBlank() && queries.stream().noneMatch(value::equalsIgnoreCase)) {
+            queries.add(value.trim());
+        }
     }
 
     private String firstNonBlank(JsonNode... values) {

@@ -335,7 +335,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
     if (audioRef.current) audioRef.current.volume = targetVol;
   }, [isMuted, volume, isSpotifyPlayingTrack, isPremium, setSpotifyVolume]);
-  const retry = useCallback(() => { if (currentSong) playLocalAudio(currentSong); }, [currentSong, playLocalAudio]);
+  const retry = useCallback(() => {
+    if (currentSong) playSong(currentSong, queue, activeMood || undefined);
+  }, [currentSong, queue, activeMood, playSong]);
   const openLyrics = useCallback(() => setIsLyricsOpen(true), []);
   const closeLyrics = useCallback(() => setIsLyricsOpen(false), []);
   const toggleLyrics = useCallback(() => setIsLyricsOpen((value) => !value), []);

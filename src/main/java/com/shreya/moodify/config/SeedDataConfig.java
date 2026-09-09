@@ -5,6 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -13,12 +14,19 @@ import java.util.List;
 @Configuration
 public class SeedDataConfig {
 
+    @Value("${app.demo-mode:false}")
+    private boolean demoMode;
+
     @Bean
     public CommandLineRunner seed(MoodRepository mr,
                                   SongRepository sr,
                                   SongMoodRepository smr,
                                   UserRepository ur,
                                   LyricsRepository lr,
+                                  TranslationRepository tr,
+                                  FavoriteRepository fr,
+                                  HistoryRepository hr,
+                                  PlaylistSongRepository psr,
                                   PasswordEncoder pe) {
         return args -> {
             if (mr.count() == 0) {
@@ -33,6 +41,24 @@ public class SeedDataConfig {
                     ms.add(mr.save(m));
                 }
 
+            }
+
+            // Older releases inserted local placeholder tracks into the persistent
+            // database. They must never leak into the production catalog or player.
+            // Spotify is the only source for discovery music now.
+            if (!demoMode) {
+                sr.findAll().stream()
+                        .filter(this::isLegacyDemoSong)
+                        .forEach(song -> {
+                            smr.deleteAll(smr.findBySong(song));
+                            lr.deleteBySong(song);
+                            tr.deleteBySong(song);
+                            fr.deleteBySong(song);
+                            hr.deleteBySong(song);
+                            psr.deleteBySong(song);
+                            sr.delete(song);
+                        });
+                sr.flush();
             }
 
             // Demote and disable any legacy admin account to eliminate backdoor credentials
@@ -51,16 +77,34 @@ public class SeedDataConfig {
                 }
             });
 
-            // Seed a standard non-privileged demo user for evaluation
-            if (ur.findByEmailIgnoreCase("demo@moodify.local").isEmpty()) {
-                User u = new User();
-                u.setName("Demo User");
-                u.setEmail("demo@moodify.local");
-                u.setPassword(pe.encode("DemoUser123!"));
-                u.setRole(User.Role.USER);
-                u.setPreferredLanguage("English");
-                ur.save(u);
+            // Demo credentials are development-only and disabled in production.
+            if (demoMode) {
+                if (ur.findByEmailIgnoreCase("demo@moodify.local").isEmpty()) {
+                    User u = new User();
+                    u.setName("Demo User");
+                    u.setEmail("demo@moodify.local");
+                    u.setPassword(pe.encode("DemoUser123!"));
+                    u.setRole(User.Role.USER);
+                    u.setPreferredLanguage("English");
+                    ur.save(u);
+                }
+            } else {
+                ur.findByEmailIgnoreCase("demo@moodify.local").ifPresent(u -> {
+                    u.setEmail("disabled_demo_" + u.getId() + "@moodify.invalid");
+                    u.setPassword("DISABLED_" + java.util.UUID.randomUUID());
+                    u.setRole(User.Role.USER);
+                    ur.save(u);
+                });
             }
         };
+    }
+
+    private boolean isLegacyDemoSong(Song song) {
+        String title = song.getTitle() == null ? "" : song.getTitle();
+        String artist = song.getArtist() == null ? "" : song.getArtist();
+        String description = song.getDescription() == null ? "" : song.getDescription();
+        return title.regionMatches(true, 0, "Moodify Demo", 0, "Moodify Demo".length())
+                || artist.regionMatches(true, 0, "Demo Artist", 0, "Demo Artist".length())
+                || description.toLowerCase().contains("demo audio");
     }
 }

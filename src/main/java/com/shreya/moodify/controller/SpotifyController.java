@@ -17,7 +17,7 @@ public class SpotifyController {
 
     @GetMapping("/status")
     public SpotifyStatusView status(Authentication authentication) {
-        return spotify.getStatus(authentication.getName());
+        return spotify.getStatus(authentication == null ? null : authentication.getName());
     }
 
     @GetMapping("/authorize")
