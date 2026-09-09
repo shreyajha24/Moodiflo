@@ -93,6 +93,11 @@ export function useSpotifyPlayer(
         setPlayerError(`Spotify playback error: ${message}`);
       });
 
+      player.addListener('autoplay_failed', () => {
+        if (!isMounted) return;
+        setPlayerError('Browser audio activation was blocked. Press Play again.');
+      });
+
       player.connect().then((success: boolean) => {
         if (!isMounted) return;
         if (!success) {
@@ -126,11 +131,17 @@ export function useSpotifyPlayer(
   }, [enabled, isPremium, onStateChange]);
 
   const playSpotifyTrack = useCallback(async (spotifyUri: string): Promise<boolean> => {
-    if (!deviceId) {
+    if (!spotifyUri.startsWith('spotify:track:')) {
+      setPlayerError('Spotify playback requires a valid Spotify track URI.');
+      return false;
+    }
+    if (!deviceId || !playerRef.current) {
       setPlayerError('Spotify player device is not ready.');
       return false;
     }
     try {
+      // Must happen from the user's Play gesture for browsers that gate audio.
+      await playerRef.current.activateElement();
       const token = tokenRef.current || (await spotifyService.getAccessToken());
       tokenRef.current = token;
 
@@ -153,6 +164,7 @@ export function useSpotifyPlayer(
       setPlayerError(null);
       return true;
     } catch (err) {
+      if (import.meta.env.DEV) console.warn('[Spotify] playback request failed', err);
       setPlayerError(err instanceof Error ? err.message : 'Failed to trigger Spotify playback.');
       return false;
     }

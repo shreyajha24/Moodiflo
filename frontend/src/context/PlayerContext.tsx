@@ -59,7 +59,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [playbackStatus, setPlaybackStatus] = useState<PlaybackStatus>('idle');
   const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [spotifyConnected, setSpotifyConnected] = useState(false);
-  const [spotifyProduct, setSpotifyProduct] = useState<string | null>(null);
+  const [spotifyPremium, setSpotifyPremium] = useState(false);
   const [isSpotifyPlayingTrack, setIsSpotifyPlayingTrack] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -68,7 +68,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const currentIndexRef = useRef(-1);
   const currentSongRef = useRef<SongView | null>(null);
 
-  const isPremium = spotifyConnected && spotifyProduct === 'premium';
+  const isPremium = spotifyConnected && spotifyPremium;
 
   // Official Spotify Web Playback SDK integration
   const {
@@ -100,15 +100,15 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (!isAuthenticated) {
       setSpotifyConnected(false);
-      setSpotifyProduct(null);
+      setSpotifyPremium(false);
       return;
     }
     spotifyService.getStatus().then((status) => {
       setSpotifyConnected(status.connected);
-      setSpotifyProduct(status.product || null);
+      setSpotifyPremium(status.premium === true || status.product === 'premium');
     }).catch(() => {
       setSpotifyConnected(false);
-      setSpotifyProduct(null);
+      setSpotifyPremium(false);
     });
   }, [isAuthenticated]);
 
@@ -250,8 +250,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       setPlaybackStatus('error');
       setPlaybackError(spotifyConnected && !isPremium
-        ? 'Spotify Premium is required for direct full-track streaming.'
-        : 'Spotify is not connected. Connect in your profile to stream full Spotify tracks.');
+        ? 'Spotify Premium is required for in-browser playback. Use Open in Spotify instead.'
+        : 'Spotify is not connected. Connect Spotify in your profile to play this track.');
       setIsPlaying(false);
       return;
     }

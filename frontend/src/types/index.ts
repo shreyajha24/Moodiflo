@@ -37,18 +37,23 @@ export interface SongView {
   description?: string | null;
   spotifyUri?: string | null;
   spotifyTrackId?: string | null;
+  spotifyExternalUrl?: string | null;
   provider?: string | null;
   providerTrackId?: string | null;
 }
 
 export interface SargamPlaceView {
+  name: string;
   displayName: string;
   latitude: number;
   longitude: number;
   country?: string | null;
+  countryCode?: string | null;
+  region?: string | null;
   tracks: SongView[];
   genres: string[];
   artists: string[];
+  queriesUsed: string[];
 }
 
 export interface MoodView {
@@ -148,6 +153,10 @@ export interface SpotifyStatusView {
   configured: boolean;
   displayName?: string | null;
   product?: string | null;
+  tokenRefreshable?: boolean;
+  premium?: boolean;
+  state?: string;
+  message?: string | null;
 }
 
 export interface SpotifySearchItem {
@@ -164,14 +173,6 @@ export interface SpotifySearchResponse {
   artists: SpotifySearchItem[];
   albums: SpotifySearchItem[];
   playlists: SpotifySearchItem[];
-}
-
-export interface SargamPlaceView {
-  displayName: string;
-  latitude: number;
-  longitude: number;
-  country?: string | null;
-  tracks: SongView[];
 }
 
 export interface MusicPageResponse {

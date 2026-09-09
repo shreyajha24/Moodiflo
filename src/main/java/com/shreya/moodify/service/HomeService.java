@@ -7,30 +7,26 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
 public class HomeService {
 
     private final MoodService moods;
-    private final RecommendationService recommendationService;
+    private final SpotifyService spotify;
     private final UserRepository userRepo;
     private final HistoryRepository historyRepo;
-    private final SongRepository songRepo;
     private final SongService songService;
 
     public HomeService(MoodService moods,
-                       RecommendationService recommendationService,
+                       SpotifyService spotify,
                        UserRepository userRepo,
                        HistoryRepository historyRepo,
-                       SongRepository songRepo,
                        SongService songService) {
         this.moods = moods;
-        this.recommendationService = recommendationService;
+        this.spotify = spotify;
         this.userRepo = userRepo;
         this.historyRepo = historyRepo;
-        this.songRepo = songRepo;
         this.songService = songService;
     }
 
@@ -48,10 +44,6 @@ public class HomeService {
                 ? historyRepo.findTop20ByUserOrderByPlayedAtDesc(userOpt.get())
                 : List.of();
 
-        Set<Long> playedSongIds = history.stream()
-                .map(h -> h.getSong().getId())
-                .collect(Collectors.toSet());
-
         // 3. Suggested Mood
         String suggestedMood = determineSuggestedMood(history);
 
@@ -59,6 +51,7 @@ public class HomeService {
         List<SongView> continueListening = history.stream()
                 .filter(h -> h.getCompletionPercentage() != null && h.getCompletionPercentage() < 90)
                 .map(h -> h.getSong())
+                .filter(this::isNotLegacyDemoSong)
                 .distinct()
                 .limit(10)
                 .map(songService::view)
@@ -67,19 +60,20 @@ public class HomeService {
         // 5. Recently Played (Distinct)
         List<SongView> recentlyPlayed = history.stream()
                 .map(h -> h.getSong())
+                .filter(this::isNotLegacyDemoSong)
                 .distinct()
                 .limit(10)
                 .map(songService::view)
                 .toList();
 
         // 6. Because You Listened (based on most recent song's genre/mood)
-        List<SongView> becauseYouListened = determineBecauseYouListened(history, playedSongIds, suggestedMood);
-
-        // 7. Recommended For You (Personalized)
-        List<SongView> recommendedForYou = recommendationService.recommendPersonalized(email, 10);
-
-        // 8. Trending Songs
-        List<SongView> trending = recommendationService.getTrending(10);
+        // Spotify is the only discovery source for Home. The database history
+        // above is retained only for user context and is never used as a
+        // discovery fallback.
+        List<SongView> spotifyMoodTracks = spotify.searchByMood(suggestedMood, email, 0, 20);
+        List<SongView> becauseYouListened = spotifyMoodTracks.stream().limit(8).toList();
+        List<SongView> recommendedForYou = spotifyMoodTracks.stream().limit(10).toList();
+        List<SongView> trending = spotifyMoodTracks.stream().skip(10).limit(10).toList();
 
         return new DiscoveryResponse(
                 greeting,
@@ -133,26 +127,12 @@ public class HomeService {
         }
     }
 
-    private List<SongView> determineBecauseYouListened(List<ListeningHistory> history,
-                                                      Set<Long> playedSongIds,
-                                                      String fallbackMood) {
-        if (!history.isEmpty()) {
-            Song recentSong = history.get(0).getSong();
-            if (recentSong.getGenre() != null && !recentSong.getGenre().isBlank()) {
-                List<Song> genreMatches = songRepo.findByGenreIgnoreCase(recentSong.getGenre());
-                List<SongView> unplayedMatches = genreMatches.stream()
-                        .filter(s -> !playedSongIds.contains(s.getId()))
-                        .limit(8)
-                        .map(songService::view)
-                        .toList();
-
-                if (!unplayedMatches.isEmpty()) {
-                    return unplayedMatches;
-                }
-            }
-        }
-
-        // Fallback: recommend songs matching suggested mood
-        return recommendationService.recommendForMood(fallbackMood, null, null, 8);
+    private boolean isNotLegacyDemoSong(Song song) {
+        String title = song.getTitle() == null ? "" : song.getTitle();
+        String artist = song.getArtist() == null ? "" : song.getArtist();
+        String description = song.getDescription() == null ? "" : song.getDescription();
+        return !title.regionMatches(true, 0, "Moodify Demo", 0, "Moodify Demo".length())
+                && !artist.regionMatches(true, 0, "Demo Artist", 0, "Demo Artist".length())
+                && !description.toLowerCase().contains("demo audio");
     }
 }

@@ -83,7 +83,7 @@ class MoodifyApiIntegrationTests {
         SongView fixtureView = new SongView(fixture.getId(), fixture.getTitle(), fixture.getArtist(),
                 fixture.getAlbum(), fixture.getDuration(), fixture.getAudioUrl(), fixture.getCoverImageUrl(),
                 fixture.getLanguage(), fixture.getGenre(), fixture.getReleaseDate(), fixture.getDescription(),
-                null, null, "TEST", fixture.getId().toString());
+                null, null, null, "TEST", fixture.getId().toString());
         when(spotifyService.searchByMood(anyString(), nullable(String.class), anyInt(), anyInt()))
                 .thenReturn(List.of(fixtureView));
         when(translationService.translate(anyString(), anyString(), eq("Spanish")))
@@ -302,8 +302,11 @@ class MoodifyApiIntegrationTests {
         assertThat(discovery.moodCards()).isNotEmpty();
         assertThat(discovery.continueListening()).isNotEmpty();
         assertThat(discovery.continueListening().get(0).id()).isEqualTo(1L);
-        assertThat(discovery.trending()).isNotEmpty();
         assertThat(discovery.recommendedForYou()).isNotEmpty();
+        assertThat(discovery.recommendedForYou()).allSatisfy(song -> {
+            assertThat(song.title()).doesNotContain("Moodify Demo");
+            assertThat(song.artist()).doesNotContain("Demo Artist");
+        });
     }
 
     @Test

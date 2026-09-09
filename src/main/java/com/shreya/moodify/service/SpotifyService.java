@@ -125,7 +125,7 @@ public class SpotifyService {
     // Get valid access token (refreshes if expired)
     // ─────────────────────────────────────────────────────────────
 
-    @Transactional(readOnly = true)
+    @Transactional
     public String getAccessToken(String userEmail) {
         User user = userRepo.findByEmailIgnoreCase(userEmail)
                 .orElseThrow(() -> new ApiExceptions.NotFound("User not found."));
@@ -151,16 +151,31 @@ public class SpotifyService {
     public SpotifyStatusView getStatus(String userEmail) {
         boolean configured = config.isConfigured();
         if (!configured) {
-            return new SpotifyStatusView(false, false, null, null);
+            return new SpotifyStatusView(false, false, null, null, false, false,
+                    "NOT_CONFIGURED", "Spotify is not configured on this server.");
         }
         if (userEmail == null || userEmail.isBlank()) {
-            return new SpotifyStatusView(false, true, null, null);
+            return new SpotifyStatusView(false, true, null, null, false, false,
+                    "NOT_AUTHENTICATED", "Sign in to Moodiflo to connect Spotify.");
         }
         User user = userRepo.findByEmailIgnoreCase(userEmail)
                 .orElseThrow(() -> new ApiExceptions.NotFound("User not found."));
         boolean connected = user.getSpotifyAccessToken() != null;
-        return new SpotifyStatusView(connected, true,
-                user.getSpotifyDisplayName(), user.getSpotifyProduct());
+        boolean refreshable = user.getSpotifyRefreshToken() != null && !user.getSpotifyRefreshToken().isBlank();
+        boolean premium = "premium".equalsIgnoreCase(user.getSpotifyProduct());
+        boolean expired = connected && user.getSpotifyTokenExpiresAt() != null
+                && Instant.now().isAfter(user.getSpotifyTokenExpiresAt());
+        String state = !connected ? "NOT_CONNECTED"
+                : expired && refreshable ? "TOKEN_REFRESHABLE"
+                : expired ? "TOKEN_EXPIRED"
+                : premium ? "CONNECTED_PREMIUM" : "CONNECTED_NON_PREMIUM";
+        String message = !connected ? "Connect Spotify for personalized playback."
+                : expired && refreshable ? "Spotify needs to refresh your connection before playback."
+                : expired ? "Reconnect Spotify to enable playback."
+                : premium ? "Spotify Web Playback is available for this account."
+                : "Spotify Premium is required for in-browser playback.";
+        return new SpotifyStatusView(connected, true, user.getSpotifyDisplayName(), user.getSpotifyProduct(),
+                refreshable, premium, state, message);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -218,7 +233,9 @@ public class SpotifyService {
                     .bodyToMono(String.class)
                     .block();
 
-            return parseTrackResults(objectMapper.readTree(body), mood);
+            List<SongView> results = parseTrackResults(objectMapper.readTree(body), mood);
+            log.info("Spotify mood search mood={} query={} results={}", mood, query, results.size());
+            return results;
         } catch (WebClientResponseException.Unauthorized e) {
             // Token expired mid-request — clear cached client credentials token and retry once
             clientCredentialsToken = null;
@@ -258,7 +275,9 @@ public class SpotifyService {
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
-            return parseTrackResults(objectMapper.readTree(body), "Spotify Search");
+            List<SongView> results = parseTrackResults(objectMapper.readTree(body), "Spotify Search");
+            log.info("Spotify track search query={} results={}", query, results.size());
+            return results;
         } catch (WebClientResponseException.Unauthorized ex) {
             clientCredentialsToken = null;
             clientCredentialsExpiry = Instant.EPOCH;
@@ -289,11 +308,15 @@ public class SpotifyService {
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                     .retrieve().bodyToMono(String.class).block();
             JsonNode root = objectMapper.readTree(body);
-            return new SpotifySearchResponse(
-                    parseTrackResults(root, "Spotify Search"),
+            List<SongView> tracks = parseTrackResults(root, "Spotify Search");
+            SpotifySearchResponse response = new SpotifySearchResponse(
+                    tracks,
                     parseSearchItems(root.path("artists").path("items"), "artist"),
                     parseSearchItems(root.path("albums").path("items"), "album"),
                     parseSearchItems(root.path("playlists").path("items"), "playlist"));
+            log.info("Spotify grouped search query={} tracks={} artists={} albums={} playlists={}", query,
+                    tracks.size(), response.artists().size(), response.albums().size(), response.playlists().size());
+            return response;
         } catch (WebClientResponseException.Unauthorized ex) {
             clientCredentialsToken = null;
             clientCredentialsExpiry = Instant.EPOCH;
@@ -458,8 +481,7 @@ public class SpotifyService {
                     coverUrl = images.get(0).path("url").asText(null);
                 }
                 String spotifyUri = track.path("uri").asText(null);
-                String previewUrl = track.path("preview_url").isNull() ? null
-                        : track.path("preview_url").asText(null);
+                String externalUrl = track.path("external_urls").path("spotify").asText(null);
                 int durationMs = track.path("duration_ms").asInt(0);
                 int durationSec = durationMs / 1000;
 
@@ -472,7 +494,7 @@ public class SpotifyService {
                         artist,
                         albumName,
                         durationSec > 0 ? durationSec : null,
-                        previewUrl,    // audioUrl = previewUrl (30-sec, no Premium needed)
+                        null,          // Spotify metadata is not a browser audio URL
                         coverUrl,
                         null,          // language
                         mood,          // genre = mood label
@@ -480,6 +502,7 @@ public class SpotifyService {
                         null,          // description
                         spotifyUri,    // spotifyUri for SDK playback
                         id,            // spotifyTrackId
+                        externalUrl,   // official Spotify URL for non-Premium fallback
                         "SPOTIFY",
                         id             // providerTrackId
                 ));

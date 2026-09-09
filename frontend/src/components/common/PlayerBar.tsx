@@ -11,6 +11,7 @@ import {
   SkipForward,
   Volume2,
   VolumeX,
+  ExternalLink,
 } from 'lucide-react';
 import { usePlayer } from '../../hooks/usePlayer';
 import { AddMemoryModal } from './AddMemoryModal';
@@ -95,12 +96,19 @@ export const PlayerBar: React.FC = () => {
                   Mood: {moodLabel}
                 </span>
                 {playbackStatus === 'error' && (
-                  <button
-                    onClick={retry}
-                    className="text-[10px] text-pink-400 underline ml-1"
-                  >
-                    Retry
-                  </button>
+                  <span className="flex items-center gap-2 ml-1">
+                    <button onClick={retry} className="text-[10px] text-pink-400 underline">Retry</button>
+                    {currentSong.spotifyExternalUrl && (
+                      <a
+                        href={currentSong.spotifyExternalUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[10px] text-cyan-300 underline"
+                      >
+                        Open in Spotify <ExternalLink size={10} />
+                      </a>
+                    )}
+                  </span>
                 )}
               </div>
             </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, Heart, Plus, Music2 } from 'lucide-react';
+import { Play, Pause, Heart, Plus, Music2, ExternalLink } from 'lucide-react';
 import type { SongView } from '../../types';
 import { usePlayer } from '../../hooks/usePlayer';
 import { useAuth } from '../../hooks/useAuth';
@@ -139,6 +139,19 @@ export const SongCard: React.FC<SongCardProps> = ({
       >
         <span>{formatDuration(song.duration)}</span>
         <div className="flex items-center gap-1">
+          {isSpotifyTrack && song.spotifyExternalUrl && (
+            <a
+              href={song.spotifyExternalUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="rounded-lg p-1.5 transition-colors hover:bg-white/5"
+              style={{ color: 'var(--accent-cyan)' }}
+              title="Open in Spotify"
+            >
+              <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
+            </a>
+          )}
           {onAddToPlaylist && !isSpotifyTrack && (
             <button
               onClick={(e) => {

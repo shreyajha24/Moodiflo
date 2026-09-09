@@ -144,8 +144,8 @@ export const ProfilePage: React.FC = () => {
             </button>
           )}
         </div>
-        {spotify?.product && spotify.product !== 'premium' && (
-          <p className="text-xs text-[#A7ABC0]">Moodiflo uses Spotify for read-only discovery context. Local playback remains available without Premium.</p>
+        {spotify?.connected && !spotify?.premium && (
+          <p className="text-xs text-[#A7ABC0]">Spotify Premium is required for in-browser playback. You can still discover tracks and open them in Spotify.</p>
         )}
         {spotifyMessage && <p className="text-xs text-slate-300">{spotifyMessage}</p>}
       </section>
