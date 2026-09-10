@@ -1,6 +1,21 @@
 import { api } from './api';
 import type { LyricsLookupView, PageResponse, SongView, TextTranslationView, TranslationView } from '../types';
 
+const LANGUAGE_CODES: Record<string, string> = {
+  english: 'en', en: 'en',
+  spanish: 'es', es: 'es',
+  french: 'fr', fr: 'fr',
+  hindi: 'hi', hi: 'hi',
+  german: 'de', de: 'de',
+  japanese: 'ja', ja: 'ja',
+  italian: 'it', it: 'it',
+};
+
+function languageCode(language: string): string {
+  const base = language.trim().toLowerCase().split('-')[0];
+  return LANGUAGE_CODES[base] || base;
+}
+
 export const songService = {
   async getAllSongs(page = 0, size = 20): Promise<PageResponse<SongView>> {
     const res = await api.get<PageResponse<SongView>>('/api/songs', {
@@ -50,7 +65,11 @@ export const songService = {
   },
 
   async translateText(text: string, targetLanguage: string, sourceLanguage = 'English'): Promise<TextTranslationView> {
-    const res = await api.post<TextTranslationView>('/api/translation', { text, targetLanguage, sourceLanguage });
+    const res = await api.post<TextTranslationView>('/api/translation', {
+      text,
+      targetLanguage: languageCode(targetLanguage),
+      sourceLanguage: languageCode(sourceLanguage),
+    });
     return res.data;
   },
 };

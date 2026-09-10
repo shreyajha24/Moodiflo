@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.http.ResponseEntity;
 import jakarta.annotation.PostConstruct;
 
 import java.io.IOException;
@@ -30,11 +32,12 @@ import java.util.Map;
 public class GoogleCloudTranslationProvider implements TranslationService {
     private static final Logger log = LoggerFactory.getLogger(GoogleCloudTranslationProvider.class);
     private static final String TOKEN_URL = "https://oauth2.googleapis.com/token";
-    private static final String TRANSLATE_URL = "https://translation.googleapis.com/language/translate/v2";
+    static final String TRANSLATE_URL = "https://translation.googleapis.com/language/translate/v2";
     private final TranslationConfig config;
     private final ObjectMapper mapper;
     private final WebClient client;
     private volatile AccessToken accessToken;
+    private volatile String startupConfigurationError;
 
     public GoogleCloudTranslationProvider(TranslationConfig config, ObjectMapper mapper, WebClient.Builder builder) {
         this.config = config; this.mapper = mapper; this.client = builder.build();
@@ -53,27 +56,46 @@ public class GoogleCloudTranslationProvider implements TranslationService {
                 error = "Google credentials file cannot be read or is not valid JSON.";
             }
         }
-        if (error != null) log.error("[Translation] Google provider is enabled but unavailable: {} MyMemory fallback remains active.", error);
-        else log.info("[Translation] Google Cloud Translation provider is configured.");
+        startupConfigurationError = error;
+        if (error != null) log.error("[Translation] Google Translation provider unavailable: {}", error);
+        else log.info("[Translation] Google Translation provider enabled for project {}.", config.getGoogleProject());
     }
 
-    public boolean isConfigured() { return config.isGoogleConfigured(); }
+    public boolean isConfigured() { return configurationError() == null; }
+
+    public String configurationError() {
+        String configError = config.googleConfigurationError();
+        return configError != null ? configError : startupConfigurationError;
+    }
 
     @Override
     public String translate(String text, String sourceLanguage, String targetLanguage) {
         if (text == null || text.isBlank()) throw new ApiExceptions.BadRequest("There are no lyrics to translate.");
-        String configurationError = config.googleConfigurationError();
+        String configurationError = configurationError();
         if (configurationError != null) throw new ApiExceptions.BadRequest(configurationError);
         try {
+            String source = normalizeCode(sourceLanguage);
+            String target = normalizeCode(targetLanguage);
+            log.info("[Translation] provider=google endpoint={} project={} source={} target={}",
+                    TRANSLATE_URL, config.getGoogleProject(), source, target);
             String bearer = token();
-            String body = client.post().uri(TRANSLATE_URL).headers(h -> h.setBearerAuth(bearer))
-                    .bodyValue(Map.of("q", text, "source", code(sourceLanguage), "target", code(targetLanguage), "format", "text"))
-                    .retrieve().bodyToMono(String.class).block(Duration.ofSeconds(12));
-            JsonNode translated = mapper.readTree(body == null ? "{}" : body).path("data").path("translations").path(0).path("translatedText");
-            if (!translated.isTextual() || translated.asText().isBlank()) throw new ApiExceptions.BadRequest("The translation provider returned no translation.");
-            return translated.asText();
+            ResponseEntity<String> response = client.post().uri(TRANSLATE_URL).headers(h -> {
+                        h.setBearerAuth(bearer);
+                        h.set("X-Goog-User-Project", config.getGoogleProject());
+                    })
+                    .bodyValue(translationRequest(text, source, target))
+                    .retrieve().toEntity(String.class).block(Duration.ofSeconds(12));
+            int status = response == null ? 0 : response.getStatusCode().value();
+            log.info("[Translation] provider=google status={}", status);
+            return parseTranslationResponse(mapper, response == null ? null : response.getBody());
         } catch (ApiExceptions.BadRequest ex) { throw ex; }
-        catch (Exception ex) { throw new ApiExceptions.BadRequest("Google translation is temporarily unavailable. Please retry."); }
+        catch (WebClientResponseException ex) {
+            log.warn("[Translation] provider=google status={} error={}", ex.getStatusCode().value(), googleErrorMessage(ex));
+            throw new ApiExceptions.BadRequest("Google Translation request failed. Check the Google project, credentials, API enablement, and language codes.");
+        } catch (Exception ex) {
+            log.warn("[Translation] Google request failed: {}", ex.getClass().getSimpleName());
+            throw new ApiExceptions.BadRequest("Google Translation is unavailable. Check the configured credentials and try again.");
+        }
     }
 
     private String token() throws Exception {
@@ -99,6 +121,48 @@ public class GoogleCloudTranslationProvider implements TranslationService {
     }
 
     private String base64(String value) { return Base64.getUrlEncoder().withoutPadding().encodeToString(value.getBytes(StandardCharsets.UTF_8)); }
-    private String code(String language) { String value = language == null || language.isBlank() ? "en" : language.trim().toLowerCase(Locale.ROOT); return switch (value) { case "english" -> "en"; case "hindi" -> "hi"; case "spanish" -> "es"; case "french" -> "fr"; case "japanese" -> "ja"; case "korean" -> "ko"; case "german" -> "de"; case "portuguese" -> "pt"; default -> value.substring(0, Math.min(2, value.length())); }; }
+
+    static String normalizeCode(String language) {
+        String value = language == null || language.isBlank() ? "en" : language.trim().toLowerCase(Locale.ROOT);
+        int separator = value.indexOf('-');
+        if (separator > 0) value = value.substring(0, separator);
+        return switch (value) {
+            case "english", "en" -> "en";
+            case "hindi", "hi" -> "hi";
+            case "spanish", "es" -> "es";
+            case "french", "fr" -> "fr";
+            case "japanese", "ja" -> "ja";
+            case "german", "de" -> "de";
+            case "italian", "it" -> "it";
+            default -> throw new ApiExceptions.BadRequest("Unsupported Google translation language code: " + value);
+        };
+    }
+
+    private String googleErrorMessage(WebClientResponseException ex) {
+        try {
+            JsonNode error = mapper.readTree(ex.getResponseBodyAsString()).path("error").path("message");
+            return error.isTextual() && !error.asText().isBlank() ? error.asText() : ex.getStatusText();
+        } catch (Exception ignored) {
+            return ex.getStatusText();
+        }
+    }
+
+    static Map<String, Object> translationRequest(String text, String sourceLanguage, String targetLanguage) {
+        return Map.of(
+                "q", text,
+                "source", normalizeCode(sourceLanguage),
+                "target", normalizeCode(targetLanguage),
+                "format", "text"
+        );
+    }
+
+    static String parseTranslationResponse(ObjectMapper mapper, String body) throws IOException {
+        JsonNode translated = mapper.readTree(body == null ? "{}" : body)
+                .path("data").path("translations").path(0).path("translatedText");
+        if (!translated.isTextual() || translated.asText().isBlank()) {
+            throw new ApiExceptions.BadRequest("The translation provider returned no translation.");
+        }
+        return translated.asText();
+    }
     private record AccessToken(String value, Instant expiresAt) { }
 }

@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -41,6 +42,28 @@ class TranslationConfigurationTests {
 
             assertThat(router.translate("hello", "English", "Hindi")).isEqualTo("translated");
             verify(google).translate("hello", "English", "Hindi");
+            verifyNoInteractions(myMemory);
+        } finally {
+            Files.deleteIfExists(credentials);
+        }
+    }
+
+    @Test
+    void enabledGoogleDoesNotSilentlyFallBackWhenGoogleFails() throws Exception {
+        Path credentials = Files.createTempFile("moodiflo-google-test", ".json");
+        try {
+            Files.writeString(credentials, "{\"client_email\":\"test@example.com\",\"private_key\":\"test\"}");
+            TranslationConfig config = config(true, "project-moodiflo", credentials.toString());
+            GoogleCloudTranslationProvider google = mock(GoogleCloudTranslationProvider.class);
+            when(google.isConfigured()).thenReturn(true);
+            when(google.configurationError()).thenReturn(null);
+            when(google.translate(anyString(), anyString(), anyString()))
+                    .thenThrow(new RuntimeException("Google unavailable"));
+            MyMemoryTranslationService myMemory = mock(MyMemoryTranslationService.class);
+            TranslationServiceRouter router = new TranslationServiceRouter(config, myMemory, provider(google));
+
+            assertThatThrownBy(() -> router.translate("Hello, how are you?", "en", "hi"))
+                    .isInstanceOf(RuntimeException.class);
             verifyNoInteractions(myMemory);
         } finally {
             Files.deleteIfExists(credentials);
