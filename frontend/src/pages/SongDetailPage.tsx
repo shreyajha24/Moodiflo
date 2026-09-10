@@ -109,8 +109,8 @@ export const SongDetailPage: React.FC = () => {
         return [res, ...filtered];
       });
       success(`Translated lyrics to ${targetLang}!`);
-    } catch {
-      error('Failed to translate lyrics');
+    } catch (reason: unknown) {
+      error(getErrorMessage(reason));
     } finally {
       setIsTranslating(false);
     }
@@ -285,7 +285,7 @@ export const SongDetailPage: React.FC = () => {
 
         {lyrics.length === 0 ? (
           <div className="py-12 text-center text-slate-500 text-sm">
-            Lyrics not available for this track yet.
+            Lyrics are not available for this track.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">

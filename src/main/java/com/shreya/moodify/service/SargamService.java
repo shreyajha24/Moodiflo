@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shreya.moodify.dto.ApiDtos.SargamPlaceView;
 import com.shreya.moodify.dto.ApiDtos.SongView;
 import com.shreya.moodify.dto.ApiDtos.SpotifySearchResponse;
+import com.shreya.moodify.discovery.DiscoveryRequest;
+import com.shreya.moodify.discovery.DiscoveryService;
+import com.shreya.moodify.discovery.NormalizedPlace;
+import com.shreya.moodify.discovery.PlaceResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -18,11 +22,16 @@ public class SargamService {
     private final WebClient client;
     private final ObjectMapper mapper;
     private final SpotifyService spotify;
+    private final DiscoveryService discovery;
+    private final PlaceResolver placeResolver;
 
-    public SargamService(WebClient.Builder builder, ObjectMapper mapper, SpotifyService spotify) {
+    public SargamService(WebClient.Builder builder, ObjectMapper mapper, SpotifyService spotify,
+                         DiscoveryService discovery, PlaceResolver placeResolver) {
         this.client = builder.baseUrl("https://nominatim.openstreetmap.org").build();
         this.mapper = mapper;
         this.spotify = spotify;
+        this.discovery = discovery;
+        this.placeResolver = placeResolver;
     }
 
     public SargamPlaceView explore(String place, String email) {
@@ -77,6 +86,7 @@ public class SargamService {
         String region = firstNonBlank(address.path("state"), address.path("region"), address.path("state_district"));
         String countryCode = address.path("country_code").asText("").toUpperCase();
         String placeName = firstNonBlank(locality, region, country);
+        NormalizedPlace normalizedPlace = placeResolver.resolve(placeName);
         List<String> queries = new ArrayList<>();
         addQuery(queries, placeName + " music");
         addQuery(queries, placeName + " songs");
@@ -94,6 +104,14 @@ public class SargamService {
         Map<String, String> artistMap = new LinkedHashMap<>();
         Map<String, String> artistIds = new LinkedHashMap<>();
         Map<String, String> genreMap = new LinkedHashMap<>();
+        try {
+            List<SongView> externalTracks = discovery.discover(new DiscoveryRequest("place", placeName,
+                    normalizedPlace.musicDiscoveryTags(), country, region, 20), email);
+            externalTracks.forEach(track -> trackMap.putIfAbsent(track.spotifyTrackId() != null ? track.spotifyTrackId() : String.valueOf(track.id()), track));
+            normalizedPlace.musicDiscoveryTags().forEach(tag -> genreMap.putIfAbsent(tag, tag));
+        } catch (RuntimeException ignored) {
+            // Sargam retains the existing Spotify query path if external discovery is unavailable.
+        }
         for (String query : queries) {
             try {
                 SpotifySearchResponse grouped = spotify.searchAll(query, email, 0, 12);

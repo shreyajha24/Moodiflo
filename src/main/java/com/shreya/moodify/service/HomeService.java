@@ -1,5 +1,6 @@
 package com.shreya.moodify.service;
 import com.shreya.moodify.dto.ApiDtos.*;
+import com.shreya.moodify.discovery.DiscoveryService;
 import com.shreya.moodify.entity.*;
 import com.shreya.moodify.repository.*;
 import org.springframework.stereotype.Service;
@@ -17,17 +18,19 @@ public class HomeService {
     private final UserRepository userRepo;
     private final HistoryRepository historyRepo;
     private final SongService songService;
+    private final DiscoveryService discoveryService;
 
     public HomeService(MoodService moods,
                        SpotifyService spotify,
                        UserRepository userRepo,
                        HistoryRepository historyRepo,
-                       SongService songService) {
+                       SongService songService, DiscoveryService discoveryService) {
         this.moods = moods;
         this.spotify = spotify;
         this.userRepo = userRepo;
         this.historyRepo = historyRepo;
         this.songService = songService;
+        this.discoveryService = discoveryService;
     }
 
     public DiscoveryResponse home(String email) {
@@ -70,7 +73,8 @@ public class HomeService {
         // Spotify is the only discovery source for Home. The database history
         // above is retained only for user context and is never used as a
         // discovery fallback.
-        List<SongView> spotifyMoodTracks = spotify.searchByMood(suggestedMood, email, 0, 20);
+        List<SongView> spotifyMoodTracks = discoveryService.discoverMood(suggestedMood, email, 20);
+        if (spotifyMoodTracks.isEmpty()) spotifyMoodTracks = spotify.searchByMood(suggestedMood, email, 0, 20);
         List<SongView> becauseYouListened = spotifyMoodTracks.stream().limit(8).toList();
         List<SongView> recommendedForYou = spotifyMoodTracks.stream().limit(10).toList();
         List<SongView> trending = spotifyMoodTracks.stream().skip(10).limit(10).toList();

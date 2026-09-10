@@ -149,7 +149,7 @@ public class FeatureService {
 
     public TranslationView translate(String email, Long songId, TranslationRequest r) {
         Song s = song.get(songId);
-        Lyrics l = lyricsFor(s).orElseThrow(() -> new NotFound("Lyrics are unavailable for this track"));
+        Lyrics l = lyricsFor(s).orElseThrow(() -> new NotFound("Lyrics are not available for this track."));
         Translation t = translations.findBySongAndSourceLanguageAndTargetLanguage(s, l.getLanguage(), r.targetLanguage())
                 .orElseGet(() -> {
                     Translation n = new Translation();

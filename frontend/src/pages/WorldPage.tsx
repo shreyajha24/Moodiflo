@@ -33,7 +33,7 @@ export const WorldPage: React.FC = () => {
 
   return (
     <div className="sargam-page">
-      <header className="sargam-heading"><div><p className="eyebrow">Sargam · world to sound</p><h1 className="page-title">Music through place.</h1><p className="page-copy">Search a place or click the globe. Discover what Spotify returns from there.</p></div><Globe2 className="sargam-heading-icon" /></header>
+      <header className="sargam-heading"><div><p className="eyebrow">Sargam · world to sound</p><h1 className="page-title">Music through place.</h1><p className="page-copy">Search a place or click the globe. Discover culture-aware Spotify tracks.</p></div><Globe2 className="sargam-heading-icon" /></header>
       <form onSubmit={submit} className="sargam-search panel-quiet"><MapPin size={17} /><input value={place} onChange={(event) => setPlace(event.target.value)} placeholder="Search a city or place" aria-label="Search a place" /><button className="button-primary" disabled={loading}><Search size={15} /> Explore</button></form>
       {loading && <div className="empty-inline panel-quiet">Searching {place.trim() || 'this place'}...</div>}
       {error && <div className="empty-inline panel-quiet">{error}</div>}

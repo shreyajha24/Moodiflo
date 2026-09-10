@@ -1,5 +1,6 @@
 package com.shreya.moodify.service;
 import com.shreya.moodify.dto.ApiDtos.*;
+import com.shreya.moodify.discovery.DiscoveryService;
 import com.shreya.moodify.entity.Mood;
 import com.shreya.moodify.exception.ApiExceptions.BadRequest;
 import com.shreya.moodify.exception.ApiExceptions.NotFound;
@@ -17,11 +18,13 @@ public class MoodService {
     private final MoodRepository moods;
     private final SongMoodRepository links;
     private final SpotifyService spotifyService;
+    private final DiscoveryService discoveryService;
 
-    public MoodService(MoodRepository m, SongMoodRepository l, SpotifyService spotifyService) {
+    public MoodService(MoodRepository m, SongMoodRepository l, SpotifyService spotifyService, DiscoveryService discoveryService) {
         this.moods = m;
         this.links = l;
         this.spotifyService = spotifyService;
+        this.discoveryService = discoveryService;
     }
 
     @Transactional(readOnly = true)
@@ -54,7 +57,10 @@ public class MoodService {
     @Transactional(readOnly = true)
     public SpotifyMusicPage recommendationsPage(String name, String userEmail, int page, int limit) {
         get(name);
-        List<SongView> spotifyTracks = spotifyService.searchByMood(name, userEmail, page * limit, limit);
+        List<SongView> spotifyTracks = page == 0 ? discoveryService.discoverMood(name, userEmail, limit) : List.of();
+        if (spotifyTracks.isEmpty()) {
+            spotifyTracks = spotifyService.searchByMood(name, userEmail, page * limit, limit);
+        }
         return new SpotifyMusicPage(spotifyTracks, spotifyTracks.size() == limit);
     }
 

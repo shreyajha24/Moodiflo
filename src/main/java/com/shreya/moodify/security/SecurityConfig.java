@@ -106,6 +106,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/sargam/reverse").permitAll()
                         .requestMatchers("/api/search").permitAll()
                         .requestMatchers("/api/discover/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/discovery/mood/**").permitAll()
                         .requestMatchers("/api/mood-session").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()

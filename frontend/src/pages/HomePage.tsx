@@ -93,7 +93,7 @@ export const HomePage: React.FC = () => {
       <Rail title="Recently explored" songs={feed?.recentlyPlayed || feed?.continueListening || []} onSeeAll={() => navigate('/history')} />
       <Rail title="New discoveries" songs={feed?.recommendedForYou || feed?.trending || []} onSeeAll={() => navigate('/discover')} />
 
-      {!loading && !songs.length && !feed?.recentlyPlayed?.length && <div className="empty-inline panel-quiet">No music is available for this mood yet. Try another feeling or search Spotify.</div>}
+      {!loading && !songs.length && !feed?.recentlyPlayed?.length && <div className="empty-inline panel-quiet">No music found for this mood yet. Try another mood or search Spotify.</div>}
       {loading && <div className="rail-loading"><span /><span /><span /><span /></div>}
     </div>
   );
