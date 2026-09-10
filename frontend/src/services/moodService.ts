@@ -1,4 +1,5 @@
 import { api } from './api';
+import { discoveryService } from './discoveryService';
 import type { MoodSessionRequest, MoodSessionResponse, MoodView, QueryResponse, MusicPageResponse } from '../types';
 
 export const moodService = {
@@ -13,6 +14,10 @@ export const moodService = {
   },
 
   async getRecommendations(moodName: string, page = 0, limit = 20): Promise<MusicPageResponse> {
+    if (page === 0) {
+      const songs = await discoveryService.getMood(moodName, limit);
+      return { mood: moodName.toUpperCase(), songs, page, limit, hasMore: songs.length >= limit };
+    }
     const res = await api.get<MusicPageResponse>(`/api/moods/${encodeURIComponent(moodName)}/recommendations`, {
       params: { page, limit },
     });

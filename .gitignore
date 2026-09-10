@@ -59,6 +59,7 @@ Thumbs.db
 *.p12
 *.jks
 *.keystore
+moodiflo-*.json
 
 ### Environment / Local Secrets ###
 .env

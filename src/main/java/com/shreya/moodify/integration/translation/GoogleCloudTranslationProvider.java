@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shreya.moodify.config.TranslationConfig;
 import com.shreya.moodify.exception.ApiExceptions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Primary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import jakarta.annotation.PostConstruct;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,9 +26,9 @@ import java.util.Map;
 
 /** Official Google Cloud Translation REST API adapter; credentials stay on the server. */
 @Service
-@Primary
 @ConditionalOnProperty(name = "app.translation.google-enabled", havingValue = "true")
 public class GoogleCloudTranslationProvider implements TranslationService {
+    private static final Logger log = LoggerFactory.getLogger(GoogleCloudTranslationProvider.class);
     private static final String TOKEN_URL = "https://oauth2.googleapis.com/token";
     private static final String TRANSLATE_URL = "https://translation.googleapis.com/language/translate/v2";
     private final TranslationConfig config;
@@ -38,10 +40,30 @@ public class GoogleCloudTranslationProvider implements TranslationService {
         this.config = config; this.mapper = mapper; this.client = builder.build();
     }
 
+    @PostConstruct
+    void validateConfigurationAtStartup() {
+        String error = config.googleConfigurationError();
+        if (error == null) {
+            try {
+                JsonNode credentials = mapper.readTree(Files.readString(Path.of(config.getGoogleCredentials())));
+                if (!credentials.path("client_email").isTextual() || !credentials.path("private_key").isTextual()) {
+                    error = "Google credentials file is missing client_email or private_key.";
+                }
+            } catch (Exception ex) {
+                error = "Google credentials file cannot be read or is not valid JSON.";
+            }
+        }
+        if (error != null) log.error("[Translation] Google provider is enabled but unavailable: {} MyMemory fallback remains active.", error);
+        else log.info("[Translation] Google Cloud Translation provider is configured.");
+    }
+
+    public boolean isConfigured() { return config.isGoogleConfigured(); }
+
     @Override
     public String translate(String text, String sourceLanguage, String targetLanguage) {
         if (text == null || text.isBlank()) throw new ApiExceptions.BadRequest("There are no lyrics to translate.");
-        if (config.getGoogleProject().isBlank() || config.getGoogleCredentials().isBlank()) throw new ApiExceptions.BadRequest("Google Translation is not fully configured on this server.");
+        String configurationError = config.googleConfigurationError();
+        if (configurationError != null) throw new ApiExceptions.BadRequest(configurationError);
         try {
             String bearer = token();
             String body = client.post().uri(TRANSLATE_URL).headers(h -> h.setBearerAuth(bearer))

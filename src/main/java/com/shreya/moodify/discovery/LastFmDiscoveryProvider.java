@@ -31,9 +31,12 @@ public class LastFmDiscoveryProvider implements MusicDiscoveryProvider {
         if (!properties.isEnabled() || properties.getLastfmApiKey() == null || properties.getLastfmApiKey().isBlank()) return List.of();
         try {
             String query = request.value() == null ? String.join(" ", request.tags()) : request.value();
-            String body = client.get().uri(uri -> uri.queryParam("method", method(request))
+            String body = client.get().uri(uri -> {
+                    var builder = uri.queryParam("method", method(request))
                     .queryParam("api_key", properties.getLastfmApiKey()).queryParam("format", "json")
-                    .queryParam("limit", request.limit()).queryParam("tag", query).build())
+                    .queryParam("limit", request.limit());
+                    return ("artist".equalsIgnoreCase(request.kind()) ? builder.queryParam("artist", query) : builder.queryParam("tag", query)).build();
+                })
                     .retrieve().bodyToMono(String.class).block(Duration.ofSeconds(8));
             JsonNode root = mapper.readTree(body == null ? "{}" : body);
             JsonNode items = root.path("tracks").path("track");
