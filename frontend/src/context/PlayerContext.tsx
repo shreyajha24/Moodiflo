@@ -71,6 +71,15 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const isPremium = spotifyConnected && spotifyPremium;
 
   // Official Spotify Web Playback SDK integration
+  const handleSpotifyStateChange = useCallback((spState: SpotifyTrackState | null) => {
+    if (spState) {
+      setIsPlaying(!spState.paused);
+      setPlaybackStatus(spState.paused ? 'paused' : 'playing');
+      setCurrentTime(spState.position / 1000);
+      if (spState.duration) setDuration(spState.duration / 1000);
+    }
+  }, []);
+
   const {
     deviceId: spotifyDeviceId,
     playerError: spotifySdkPlayerError,
@@ -80,14 +89,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     resumeSpotify,
     seekSpotify,
     setSpotifyVolume,
-  } = useSpotifyPlayer(spotifyConnected, isPremium, (spState) => {
-    if (spState) {
-      setIsPlaying(!spState.paused);
-      setPlaybackStatus(spState.paused ? 'paused' : 'playing');
-      setCurrentTime(spState.position / 1000);
-      if (spState.duration) setDuration(spState.duration / 1000);
-    }
-  });
+  } = useSpotifyPlayer(spotifyConnected, isPremium, handleSpotifyStateChange);
 
   const spotifyError = spotifySdkPlayerError;
 

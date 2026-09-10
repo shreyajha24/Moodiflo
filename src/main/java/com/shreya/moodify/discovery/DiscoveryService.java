@@ -50,7 +50,14 @@ public class DiscoveryService {
         if (!properties.isMoodEnabled()) return List.of();
         List<String> tags = tagsForMood(mood);
         if (tags.isEmpty()) return List.of();
-        return discover(new DiscoveryRequest("mood", String.join(" ", tags), tags, null, null, limit), email);
+        Map<String, SongView> result = new LinkedHashMap<>();
+        int perTag = Math.max(1, Math.min(5, limit));
+        for (String tag : tags) {
+            discover(new DiscoveryRequest("mood", tag, List.of(tag), null, null, perTag), email)
+                    .forEach(track -> result.putIfAbsent(track.spotifyTrackId() != null ? track.spotifyTrackId() : String.valueOf(track.id()), track));
+            if (result.size() >= limit) break;
+        }
+        return result.values().stream().limit(limit).toList();
     }
 
     public List<SongView> discoverForJourney(String email, int limit) {

@@ -41,6 +41,11 @@ export const SongCard: React.FC<SongCardProps> = ({
     }
   };
 
+  const handleCardClick = () => {
+    if (isSpotifyTrack) playSong(song, playlistContext || [song]);
+    else navigate(`/songs/${song.id}`);
+  };
+
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isAuthenticated) {
@@ -78,7 +83,7 @@ export const SongCard: React.FC<SongCardProps> = ({
 
   return (
     <article
-      onClick={() => navigate(`/songs/${song.id}`)}
+      onClick={handleCardClick}
       className={`music-card ${isThisSongPlaying ? 'is-playing' : ''}`}
     >
       <div className="music-card-art">

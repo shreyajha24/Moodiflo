@@ -83,9 +83,9 @@ export function useSpotifyPlayer(
         setPlayerError(`Spotify auth error: ${message}`);
       });
 
-      player.addListener('account_error', ({ message }: { message: string }) => {
+      player.addListener('account_error', () => {
         if (!isMounted) return;
-        setPlayerError(`Spotify Premium required for web playback: ${message}`);
+        setPlayerError('Spotify Premium is required for in-browser playback.');
       });
 
       player.addListener('playback_error', ({ message }: { message: string }) => {
@@ -145,14 +145,18 @@ export function useSpotifyPlayer(
       const token = tokenRef.current || (await spotifyService.getAccessToken());
       tokenRef.current = token;
 
-      const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+      const play = (accessToken: string) => fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
         method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ uris: [spotifyUri] }),
       });
+      let response = await play(token);
+      if (response.status === 401) {
+        tokenRef.current = null;
+        const refreshed = await spotifyService.getAccessToken();
+        tokenRef.current = refreshed;
+        response = await play(refreshed);
+      }
 
       if (!response.ok && response.status !== 204) {
         const errorData = await response.json().catch(() => ({}));

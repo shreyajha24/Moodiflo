@@ -47,6 +47,17 @@ public class FeatureController {
         return service.translate(a.getName(), songId, r);
     }
 
+    @PostMapping("/translation")
+    public TextTranslationView translateText(Authentication a, @Valid @RequestBody TextTranslationRequest request) {
+        if (a == null) throw new org.springframework.security.access.AccessDeniedException("Sign in to use translation.");
+        return service.translateText(request);
+    }
+
+    @GetMapping("/lyrics")
+    public LyricsLookupView externalLyrics(@RequestParam String title, @RequestParam String artist) {
+        return service.lookupExternalLyrics(title, artist);
+    }
+
     @GetMapping("/home")
     public DiscoveryResponse home(Authentication a) {
         String email = a != null ? a.getName() : null;

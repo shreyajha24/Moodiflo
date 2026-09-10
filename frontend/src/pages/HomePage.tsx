@@ -6,6 +6,7 @@ import { moodService } from '../services/moodService';
 import { usePlayer } from '../hooks/usePlayer';
 import { SongCard } from '../components/common/SongCard';
 import type { DiscoveryResponse, SongView } from '../types';
+import { getErrorMessage } from '../services/api';
 
 const MOODS = ['Happy', 'Calm', 'Sad', 'Energetic', 'Romantic', 'Focus', 'Chill', 'Melancholic', 'Nostalgic', 'Dreamy'];
 const SHIFT_PATH = ['CALM', 'HAPPY', 'ENERGETIC'] as const;
@@ -31,15 +32,16 @@ export const HomePage: React.FC = () => {
   const [feed, setFeed] = useState<DiscoveryResponse | null>(null);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [moodError, setMoodError] = useState<string | null>(null);
   const shiftIndex = SHIFT_PATH.indexOf(selectedMood as typeof SHIFT_PATH[number]);
   const moodLabel = useMemo(() => selectedMood.charAt(0) + selectedMood.slice(1).toLowerCase(), [selectedMood]);
 
   useEffect(() => {
     document.documentElement.dataset.mood = selectedMood;
-    setLoading(true);
+    setLoading(true); setMoodError(null);
     moodService.getRecommendations(selectedMood, 0, 12)
       .then((result) => setSongs(result.songs))
-      .catch(() => setSongs([]))
+      .catch((reason: unknown) => { setSongs([]); setMoodError(getErrorMessage(reason)); })
       .finally(() => setLoading(false));
   }, [selectedMood]);
 
@@ -93,7 +95,8 @@ export const HomePage: React.FC = () => {
       <Rail title="Recently explored" songs={feed?.recentlyPlayed || feed?.continueListening || []} onSeeAll={() => navigate('/history')} />
       <Rail title="New discoveries" songs={feed?.recommendedForYou || feed?.trending || []} onSeeAll={() => navigate('/discover')} />
 
-      {!loading && !songs.length && !feed?.recentlyPlayed?.length && <div className="empty-inline panel-quiet">No music found for this mood yet. Try another mood or search Spotify.</div>}
+      {!loading && moodError && <div className="empty-inline panel-quiet text-rose-300">{moodError}</div>}
+      {!loading && !moodError && !songs.length && <div className="empty-inline panel-quiet">No music found for this mood yet. Try another mood.</div>}
       {loading && <div className="rail-loading"><span /><span /><span /><span /></div>}
     </div>
   );

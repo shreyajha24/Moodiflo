@@ -23,6 +23,7 @@ import { DiscoverPage } from './pages/DiscoverPage';
 import { JourneysPage } from './pages/JourneysPage';
 import { WorldPage } from './pages/WorldPage';
 import { DiaryPage } from './pages/DiaryPage';
+import { TranslationPage } from './pages/TranslationPage';
 
 export function App() {
   return (
@@ -43,6 +44,7 @@ export function App() {
                 <Route path="journey" element={<JourneysPage />} />
                 <Route path="world" element={<WorldPage />} />
                 <Route path="diary" element={<DiaryPage />} />
+                <Route path="translation" element={<TranslationPage />} />
                 <Route path="moods" element={<MoodsPage />} />
                 <Route path="moods/:name" element={<MoodDetailPage />} />
                 <Route path="songs" element={<SongsPage />} />

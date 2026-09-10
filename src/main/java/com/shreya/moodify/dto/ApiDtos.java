@@ -14,6 +14,9 @@ public final class ApiDtos { private ApiDtos(){}
  public record MoodSessionResponse(String sessionId,String mood,String playlistName,List<SongView> songs){}
  public record TranslationRequest(@NotBlank String targetLanguage){}
  public record TranslationView(Long songId,String songTitle,String sourceLanguage,String targetLanguage,String originalLyrics,String translatedLyrics){}
+ public record TextTranslationRequest(@NotBlank @Size(max=50000) String text,@NotBlank @Size(max=40) String targetLanguage,@Size(max=40) String sourceLanguage){}
+ public record TextTranslationView(String originalText,String translatedText,String sourceLanguage,String targetLanguage){}
+ public record LyricsLookupView(boolean available,String language,String lyrics,String message){}
  public record HistoryRequest(@NotNull Long songId,@NotNull @Min(0) @Max(100) Integer completionPercentage,String selectedMood){}
  public record PlaylistRequest(@NotBlank String name,String description,String coverImageUrl){}
  public record PlaylistView(Long id,String name,String description,String coverImageUrl,List<SongView> songs){}

@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { PageResponse, SongView, TranslationView } from '../types';
+import type { LyricsLookupView, PageResponse, SongView, TextTranslationView, TranslationView } from '../types';
 
 export const songService = {
   async getAllSongs(page = 0, size = 20): Promise<PageResponse<SongView>> {
@@ -26,6 +26,17 @@ export const songService = {
     return res.data;
   },
 
+  async getLyricsForTrack(song: SongView): Promise<LyricsLookupView> {
+    if (song.spotifyTrackId || song.spotifyUri || song.id < 0) {
+      const res = await api.get<LyricsLookupView>('/api/lyrics', { params: { title: song.title, artist: song.artist } });
+      return res.data;
+    }
+    const lyrics = await this.getLyrics(song.id);
+    return lyrics.length > 0
+      ? { available: true, language: song.language || 'English', lyrics: lyrics.join('\n') }
+      : { available: false, message: 'Lyrics are not available for this song.' };
+  },
+
   async getTranslations(songId: number): Promise<TranslationView[]> {
     const res = await api.get<TranslationView[]>(`/api/songs/${songId}/translations`);
     return res.data;
@@ -35,6 +46,11 @@ export const songService = {
     const res = await api.post<TranslationView>(`/api/songs/${songId}/translate`, {
       targetLanguage,
     });
+    return res.data;
+  },
+
+  async translateText(text: string, targetLanguage: string, sourceLanguage = 'English'): Promise<TextTranslationView> {
+    const res = await api.post<TextTranslationView>('/api/translation', { text, targetLanguage, sourceLanguage });
     return res.data;
   },
 };

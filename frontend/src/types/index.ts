@@ -159,6 +159,20 @@ export interface SpotifyStatusView {
   message?: string | null;
 }
 
+export interface TextTranslationView {
+  originalText: string;
+  translatedText: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+}
+
+export interface LyricsLookupView {
+  available: boolean;
+  language?: string | null;
+  lyrics?: string | null;
+  message?: string | null;
+}
+
 export interface SpotifySearchItem {
   id: string;
   name: string;

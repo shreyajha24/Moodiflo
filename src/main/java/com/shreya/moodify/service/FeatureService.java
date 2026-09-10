@@ -163,6 +163,29 @@ public class FeatureService {
         return new TranslationView(songId, s.getTitle(), t.getSourceLanguage(), t.getTargetLanguage(), t.getOriginalLyrics(), t.getTranslatedLyrics());
     }
 
+    public TextTranslationView translateText(TextTranslationRequest request) {
+        String source = request.sourceLanguage() == null || request.sourceLanguage().isBlank() ? "English" : request.sourceLanguage().trim();
+        String translated = translator.translate(request.text(), source, request.targetLanguage().trim());
+        return new TextTranslationView(request.text(), translated, source, request.targetLanguage().trim());
+    }
+
+    @Transactional(readOnly = true)
+    public LyricsLookupView lookupExternalLyrics(String title, String artist) {
+        if (title == null || title.isBlank() || artist == null || artist.isBlank()) {
+            throw new com.shreya.moodify.exception.ApiExceptions.BadRequest("A song title and artist are required to look up lyrics.");
+        }
+        Song probe = new Song();
+        probe.setTitle(title.trim());
+        probe.setArtist(artist.trim());
+        try {
+            return lyricsProvider.find(probe)
+                    .map(found -> new LyricsLookupView(true, found.language(), found.text(), null))
+                    .orElseGet(() -> new LyricsLookupView(false, null, null, "Lyrics are not available for this song."));
+        } catch (RuntimeException ex) {
+            return new LyricsLookupView(false, null, null, "Lyrics could not be loaded right now. Please retry.");
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<TranslationView> translationList(Long songId) {
         Song s = song.get(songId);

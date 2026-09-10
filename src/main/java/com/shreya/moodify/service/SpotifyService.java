@@ -224,7 +224,8 @@ public class SpotifyService {
         }
 
         try {
-            String url = SPOTIFY_API + "/search?type=track&limit=" + limit
+            int safeLimit = Math.min(Math.max(limit, 1), 10);
+            String url = SPOTIFY_API + "/search?type=track&limit=" + safeLimit
                     + "&offset=" + offset + "&q=" + encode(query);
             String body = webClient.get()
                     .uri(url)
@@ -267,7 +268,7 @@ public class SpotifyService {
         }
 
         try {
-            String url = SPOTIFY_API + "/search?type=track&limit=" + Math.min(Math.max(limit, 1), 50)
+            String url = SPOTIFY_API + "/search?type=track&limit=" + Math.min(Math.max(limit, 1), 10)
                     + "&offset=" + Math.max(offset, 0) + "&q=" + encode(query.trim());
             String body = webClient.get()
                     .uri(url)
@@ -302,7 +303,7 @@ public class SpotifyService {
         }
         try {
             String url = SPOTIFY_API + "/search?type=track,artist,album,playlist&limit="
-                    + Math.min(Math.max(limit, 1), 20) + "&offset=" + Math.max(offset, 0)
+                    + Math.min(Math.max(limit, 1), 10) + "&offset=" + Math.max(offset, 0)
                     + "&q=" + encode(query.trim());
             String body = webClient.get().uri(url)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)

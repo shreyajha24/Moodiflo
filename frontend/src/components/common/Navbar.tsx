@@ -9,6 +9,7 @@ import {
   Moon,
   User as UserIcon,
   X,
+  Languages,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { spotifyService } from '../../services/spotifyService';
@@ -98,6 +99,10 @@ export const Navbar: React.FC = () => {
 
           <NavLink to="/diary" className={navPillClass}>
             Diary
+          </NavLink>
+
+          <NavLink to="/translation" className={navPillClass} title="Translate text">
+            <Languages size={13} />
           </NavLink>
 
           <button

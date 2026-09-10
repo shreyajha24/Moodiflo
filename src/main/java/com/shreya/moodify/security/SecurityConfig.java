@@ -112,6 +112,8 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         // Protected translation endpoint
                         .requestMatchers(HttpMethod.POST, "/api/songs/*/translate").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/translation").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/lyrics").permitAll()
                         // Protected user endpoints
                         .requestMatchers("/api/users/me/**").authenticated()
                         .requestMatchers("/api/playlists/**").authenticated()
